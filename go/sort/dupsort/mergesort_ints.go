@@ -26,6 +26,8 @@ func mergeCombineInts(lch, rch <-chan int, tch chan<- int) {
 	close(tch)
 }
 
+// This function takes a slice to be sorted, a range to sort
+// and a channel to send in-order ints to.
 func MergeSortInts(me []int, from, to int, tch chan<- int) {
 	if from < to-1 {
 		lch, rch := make(chan int), make(chan int)
