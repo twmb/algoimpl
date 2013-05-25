@@ -4,9 +4,9 @@ import "testing"
 
 type Ints []int
 
-func (p Ints) Len() int { return len(p) }
+func (p Ints) Len() int         { return len(p) }
 func (p Ints) LT(i, j int) bool { return p[i] < p[j] }
-func (p Ints) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+func (p Ints) Swap(i, j int)    { p[i], p[j] = p[j], p[i] }
 
 func TestInsertionSort(t *testing.T) {
 	// 100% line coverage
