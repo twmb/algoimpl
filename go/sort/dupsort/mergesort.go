@@ -1,7 +1,7 @@
-// Implements MergeSort
+// Implements merge sort on the abstract data type DupSortable
 package dupsort
 
-func mergeCombine(l DupSortable, r DupSortable) DupSortable {
+func mergeCombine(l, r DupSortable) DupSortable {
 	combined := l.New(r.Len() + l.Len())
 	li, ri, ci := 0, 0, 0
 	for ; li < l.Len() && ri < r.Len(); ci++ {

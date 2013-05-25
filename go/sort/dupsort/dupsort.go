@@ -22,4 +22,3 @@ type DupSortable interface {
 	// New returns a new DupSortable of length i
 	New(i int) DupSortable
 }
-
