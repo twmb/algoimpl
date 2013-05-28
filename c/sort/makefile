@@ -1,13 +1,15 @@
+TESTS=insertion_sort_test merge_sort_test
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c11
 
-all: insertion_sort_test
+all: $(TESTS)
 
-insertion_sort_test: insertion_sort_test.c sort.o
-	$(CC) $(CFLAGS) -o $@ $< sort.o
+# Note: I don't know why I can't take out the _test, but hey, it works.
+%_test: %_test.c %.o
+	$(CC) $(CFLAGS) -o $@ $^
 
-sort.o: insertion_sort.c sort.h
-	$(CC) -c $(CFLAGS) -o sort.o $<
+%.o: %.c %.h
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f sort.o insertion_sort_test
+	rm -f *.o $(TESTS)
