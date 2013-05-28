@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "sort.h"
+#include "insertion_sort.h"
 
 int main(int argc, char **argv) {
   int us1[1] = {-1};
