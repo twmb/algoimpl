@@ -11,13 +11,11 @@ typedef struct {
 void merge_combine(int *scrambled, int *sorted,
     merge_segment l, merge_segment r) {
   int li=l.start, ri=r.start, ci=l.start;  // left start always < right start
-  for (; li < l.end && ri < r.end; ci++) {
+  while (li < l.end && ri < r.end) {
     if (scrambled[li] < scrambled[ri]) {
-      sorted[ci] = scrambled[li];
-      li++;
+      sorted[ci++] = scrambled[li++];
     } else {
-      sorted[ci] = scrambled[ri];
-      ri++;
+      sorted[ci++] = scrambled[ri++];
     }
   }
   while (li < l.end) {
