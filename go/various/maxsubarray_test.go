@@ -24,15 +24,15 @@ func TestMaxSubarrayRecursive(t *testing.T) {
 		}
 	}
 	li, ri, sum := MaxSubarrayRecursive(tests[2].In, 2, len(tests[2].In)) // test half
-	if li != 3 && ri != 4 && sum != 4 {
+	if li != 3 || ri != 4 || sum != 4 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 3, 4, 4, tests[2].In)
 	}
 	li, ri, sum = MaxSubarrayRecursive(tests[3].In, 0, 2) // test left
-	if li != 1 && ri != 2 && sum != 1 {
+	if li != 1 || ri != 2 || sum != 1 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 1, 2, 1, tests[3].In)
 	}
 	li, ri, sum = MaxSubarrayRecursive(tests[5].In, 1, 3) // test middle
-	if li != 1 && ri != 2 && sum != 2 {
+	if li != 1 || ri != 2 || sum != 2 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 1, 2, 2, tests[5].In)
 	}
 
@@ -46,15 +46,15 @@ func TestMaxSubarray(t *testing.T) {
 		}
 	}
 	li, ri, sum := MaxSubarray(tests[2].In, 2, len(tests[2].In)) // test half
-	if li != 3 && ri != 4 && sum != 4 {
+	if li != 3 || ri != 4 || sum != 4 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 3, 4, 4, tests[2].In)
 	}
 	li, ri, sum = MaxSubarray(tests[3].In, 0, 2) // test left
-	if li != 1 && ri != 2 && sum != 1 {
+	if li != 1 || ri != 2 || sum != 1 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 1, 2, 1, tests[3].In)
 	}
 	li, ri, sum = MaxSubarray(tests[5].In, 1, 3) // test middle
-	if li != 1 && ri != 2 && sum != 2 {
+	if li != 1 || ri != 2 || sum != 2 {
 		t.Errorf("test results (%v, %v, %v) != test expected (%v, %v, %v) for right half test of array %v", li, ri, sum, 1, 2, 2, tests[5].In)
 	}
 }
