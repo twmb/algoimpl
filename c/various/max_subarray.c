@@ -1,6 +1,51 @@
 #include "max_subarray.h"
 
-// maximum subarray from left to right
+max_info max_subarray_crossing(int *arr, int l, int r) {
+  int m = (r + l) / 2;
+  int li = m-1, lsum = arr[m-1], nsum = arr[m-1];
+  for (int n = li-1; n >= l; n--) {
+    nsum += arr[n];
+    if (nsum > lsum) {
+      lsum = nsum;
+      li = n;
+    }
+  }
+  int ri = m, rsum = arr[m];
+  nsum = arr[m];
+  for (int n = ri+1; n < r; n++) {
+    nsum += arr[n];
+    if (nsum > rsum) {
+      rsum = nsum;
+      ri = n;
+    }
+  }
+  max_info best = {li, ++ri, lsum + rsum};
+  return best;
+}
+
+max_info max_subarray_recursive(int *arr, int l, int r) {
+  if (r - l <= 1) {
+    max_info max = {l, r, 0};
+    if (r == l) {
+      return max;
+    }
+    max.sum = arr[l];
+    return max;
+  } else {
+    max_info max_left = max_subarray_recursive(arr, l, (r+l)/2);
+    max_info max_right = max_subarray_recursive(arr, (r+l)/2, r);
+    max_info max_crossing = max_subarray_crossing(arr, l, r);
+    if (max_left.sum > max_right.sum && max_left.sum > max_crossing.sum) {
+      return max_left;
+    } else if (max_right.sum > max_left.sum && max_right.sum > max_crossing.sum) {
+      return max_right;
+    } else {
+      return max_crossing;
+    }
+  }
+}
+
+// maximum subarray from left to (not through) right
 max_info max_subarray(int *arr, int l, int r) {
   max_info max_now = {l, l, 0};
   if (r - l <= 1) {

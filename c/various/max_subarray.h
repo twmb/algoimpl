@@ -7,7 +7,7 @@ typedef struct {
   int sum;
 } max_info;
 
-// TODO: max_info max_subarray_recursive(int *arr, int l, int r);
+max_info max_subarray_recursive(int *arr, int l, int r);
 max_info max_subarray(int *arr, int l, int r);
 
 #endif
