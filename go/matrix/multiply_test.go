@@ -106,3 +106,35 @@ func TestBasicMultiply(t *testing.T) {
 		}
 	}
 }
+
+func TestRecursiveMultiply(t *testing.T) {
+	for _, test := range tests {
+		result, err := RecursiveMultiply(test.inA, test.inB)
+		if err != nil { // if received error
+			if result != nil {
+				t.Errorf("wanted result nil for test inA %v, inB %v", test.inA, test.inB)
+				continue
+			}
+			if test.want.e.Error() != err.Error() {
+				t.Errorf("BasicMultiply err %v != want err %v", err, test.want.e)
+				continue
+			}
+		}
+		// if didn't receive error
+		if len(result) != len(test.want.r) {
+			t.Errorf("Row count not the same for test %v and result %v", test.want.r, result)
+			continue
+		} // these two errors should never happen, as BasicMultiply would panic first.
+		for r := range test.want.r {
+			if len(result[r]) != len(test.want.r[r]) {
+				t.Errorf("Column count not the same for row %v of test %v and result %v", r, test.want.r, result)
+				continue
+			}
+			for c := range test.want.r[r] {
+				if result[r][c] != test.want.r[r][c] {
+					t.Errorf("Values at %v,%v not equal for test %v, result %v", r, c, test.want.r, result)
+				}
+			}
+		}
+	}
+}
