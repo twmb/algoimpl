@@ -25,9 +25,9 @@ func heapify(heap heap, i int) {
 	}
 }
 
-// Creates a heap from a slice of pointers to ints
-// Runs in O(lg n) time, where n is the length of the slice
-// i is the index that may be less than the left and right sorted trees
+// Creates a heap from a partially organized Sortable collection.
+// Runs in O(lg n) time, where n is the length of the collection.
+// i is the index that may be less than the left and right sorted trees.
 func Heapify(stuff Sortable, i int) {
 	if i >= stuff.Len() || i < 0 {
 		return
@@ -36,6 +36,8 @@ func Heapify(stuff Sortable, i int) {
 	heapify(heap, i)
 }
 
+// Creates a heap out of an unorganized Sortable collection.
+// Runs in O(n) time.
 func BuildHeap(stuff Sortable) {
 	heap := heap{&stuff, stuff.Len()}
 	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
@@ -43,4 +45,14 @@ func BuildHeap(stuff Sortable) {
 	}
 }
 
-//  func HeapSort
+// Runs HeapSort on a Sortable collection.
+// Runs in O(n * lg n) time, but amortizes worse than quicksort
+func HeapSort(stuff Sortable) {
+	BuildHeap(stuff)
+	heap := heap{&stuff, stuff.Len()}
+	for i := stuff.Len() - 1; i > 0; i-- {
+		stuff.Swap(0, i) // put max at end
+		heap.size--
+		heapify(heap, 0)
+	}
+}
