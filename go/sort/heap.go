@@ -12,12 +12,11 @@ type heap struct {
 func heapify(heap heap, i int) {
 	l := left(i)
 	r := right(i)
-	p := parent(i)
 	largestI := i
-	if l <= heap.size && (*heap.A).Less(i, l) {
+	if l < heap.size && (*heap.A).Less(i, l) {
 		largestI = l
 	}
-	if r <= heap.size && (*heap.A).Less(largestI, r) {
+	if r < heap.size && (*heap.A).Less(largestI, r) {
 		largestI = r
 	}
 	if largestI != i {
@@ -37,6 +36,11 @@ func Heapify(stuff Sortable, i int) {
 	heapify(heap, i)
 }
 
-//func BuildHeap(A []int) {
-//
+func BuildHeap(stuff Sortable) {
+	heap := heap{&stuff, stuff.Len()}
+	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
+		heapify(heap, i)
+	}
+}
+
 //  func HeapSort
