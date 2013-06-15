@@ -18,6 +18,7 @@ type ModSortable interface {
 	At(int) interface{}
 	Set(i int, val interface{}) error
 	Append(val interface{}) (ModSortable, error)
+	Delete(index int) (ModSortable, error)
 }
 
 // A heap that can be appended to or can have individual values accessed
@@ -112,5 +113,19 @@ func (h *ModifiableHeap) Insert(val interface{}) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (h *ModifiableHeap) Delete(i int) error {
+	if i >= h.collection.Len() {
+		return errors.New("Cannot delete index larger than length of collection")
+	}
+	h.collection.Swap(h.collection.Len()-1, i)
+	returned, err := h.collection.Delete(h.collection.Len() - 1)
+	if err != nil { // should never happen
+		return err
+	}
+	h.collection = returned
+	heapify(*h, i)
 	return nil
 }

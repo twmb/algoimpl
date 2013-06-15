@@ -27,6 +27,14 @@ func (p Ints) Append(val interface{}) (ModSortable, error) {
 	}
 	return &p, errors.New("Append: passed in type is not int")
 }
+func (p Ints) Delete(index int) (ModSortable, error) {
+	if index >= len(p) {
+		return &p, errors.New("Can't delete, index too large")
+	}
+	copy(p[index:], p[index+1:])
+	p = p[0 : len(p)-1]
+	return &p, nil
+}
 
 func TestNewPriorityQueue(t *testing.T) {
 	wantInts0 := Ints([]int{})
@@ -196,6 +204,52 @@ func TestInsert(t *testing.T) {
 	}
 	for _, test := range tests {
 		gotErr := test.Caller.Insert(test.InValChange)
+		if gotErr != nil {
+			if gotErr.Error() != test.WantError {
+				t.Errorf("Incorrect error: received %v, wanted %v", gotErr, test.WantError)
+			}
+			continue
+		}
+		changedInts := test.Caller.collection.(*Ints)
+		failed := false
+		for i, v := range *changedInts {
+			if v != test.WantInts[i] {
+				failed = true
+				break
+			}
+		}
+		if failed {
+			t.Errorf("Failing Ints: result %v != want %v", changedInts, test.WantInts)
+		}
+	}
+}
+
+func TestDelete(t *testing.T) {
+	inputInts0 := Ints([]int{})
+	wantInts0 := Ints([]int{})
+	inputInts1 := Ints([]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})
+	wantInts1 := Ints([]int{16, 8, 10, 4, 7, 9, 3, 2, 1})
+	tests := []struct {
+		Caller      *ModifiableHeap
+		DeleteIndex int
+		WantInts    Ints
+		WantError   string
+	}{
+		{
+			&ModifiableHeap{collection: &inputInts0, size: len(inputInts0)},
+			0,
+			wantInts0,
+			"Cannot delete index larger than length of collection",
+		},
+		{
+			&ModifiableHeap{collection: &inputInts1, size: len(inputInts1)},
+			1,
+			wantInts1,
+			"",
+		},
+	}
+	for _, test := range tests {
+		gotErr := test.Caller.Delete(test.DeleteIndex)
 		if gotErr != nil {
 			if gotErr.Error() != test.WantError {
 				t.Errorf("Incorrect error: received %v, wanted %v", gotErr, test.WantError)
