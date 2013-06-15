@@ -1,13 +1,8 @@
-package heap
+package sort
 
 import "testing"
 
-type Ints []int
-
-func (p Ints) Len() int           { return len(p) }
-func (p Ints) Less(i, j int) bool { return p[i] < p[j] }
-func (p Ints) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
+// uses Ints from sort_test
 // the Heapify function is tested with the both of these tests
 
 func TestBuildHeap(t *testing.T) {
@@ -21,7 +16,7 @@ func TestBuildHeap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		BuildHeap(test.In)
+		buildHeap(test.In)
 		failed := false
 		for i, v := range test.In {
 			if v != test.Want[i] {
