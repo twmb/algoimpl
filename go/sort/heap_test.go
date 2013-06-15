@@ -16,7 +16,7 @@ func TestBuildHeap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		buildHeap(test.In)
+		BuildHeap(test.In)
 		failed := false
 		for i, v := range test.In {
 			if v != test.Want[i] {
