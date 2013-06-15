@@ -1,35 +1,43 @@
 package sort
 
-func left(i int) int  { return 2*i + 1 } // 2 * (i + 1) - 1 because 0 indexed instead of 1
-func right(i int) int { return 2*i + 2 } // 2 * (i + 1) - 1 + 1
-
-type heap struct {
-	collection *Sortable
-	size       int
-}
-
-func heapify(heap heap, i int) {
-	l := left(i)
-	r := right(i)
-	largestI := i
-	if l < heap.size && (*heap.collection).Less(i, l) {
-		largestI = l
-	}
-	if r < heap.size && (*heap.collection).Less(largestI, r) {
-		largestI = r
-	}
-	if largestI != i {
-		(*heap.collection).Swap(largestI, i)
-		heapify(heap, largestI)
+// Shuffles a smaller value at index i in a heap
+// down to the appropriate spot. Complexity is O(lg n).
+func ShuffleDown(heap Sortable, i, end int) {
+	for {
+		l := 2*i + 1
+		if l >= end { // int overflow? (in go source)
+			break
+		}
+		li := l
+		if r := l + 1; r < end && heap.Less(l, r) {
+			li = r // 2*i + 2
+		}
+		if heap.Less(li, i) {
+			break
+		}
+		heap.Swap(li, i)
+		i = li
 	}
 }
 
-// Creates a heap out of an unorganized Sortable collection.
+// Shuffles a larger value in a heap at index i
+// up to the appropriate spot. Complexity is O(lg n).
+func ShuffleUp(heap Sortable, i int) {
+	for {
+		pi := (i - 1) / 2 // (i + 1) / 2 - 1, parent
+		if i == pi || !heap.Less(pi, i) {
+			break
+		}
+		heap.Swap(pi, i)
+		i = pi
+	}
+}
+
+// Creates a max heap out of an unorganized Sortable collection.
 // Runs in O(n) time.
 func BuildHeap(stuff Sortable) {
-	heap := heap{&stuff, stuff.Len()}
 	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
-		heapify(heap, i)
+		ShuffleDown(stuff, i, stuff.Len())
 	}
 }
 
@@ -37,10 +45,8 @@ func BuildHeap(stuff Sortable) {
 // Runs in O(n * lg n) time, but amortizes worse than quicksort
 func HeapSort(stuff Sortable) {
 	BuildHeap(stuff)
-	heap := heap{&stuff, stuff.Len()}
 	for i := stuff.Len() - 1; i > 0; i-- {
 		stuff.Swap(0, i) // put max at end
-		heap.size--
-		heapify(heap, 0)
+		ShuffleDown(stuff, 0, i)
 	}
 }
