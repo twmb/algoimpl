@@ -13,6 +13,9 @@ func parent(i int) int { return (i+1)/2 - 1 } // (i + 1) / 2 - 1
 // This interface embeds the Sortable interface, meaning elements
 // can be compared and swapped. It extends the Sortable interface by
 // allowing access to individual elements or by appending to the collection.
+// The Append and Delete functions must return the same data type that is passed
+// in to create a priorty queue, otherwise the Insert and Delete functions below
+// will not work.
 type ModSortable interface {
 	sort.Sortable
 	At(int) interface{}
@@ -116,6 +119,9 @@ func (h *ModifiableHeap) Insert(val interface{}) error {
 	return nil
 }
 
+// This will remove the index i from the heap.
+// This function puts the to-remove value at the end of the heap,
+// which should then be removed officially with the ModSortable interface's Delete function.
 func (h *ModifiableHeap) Delete(i int) error {
 	if i >= h.collection.Len() {
 		return errors.New("Cannot delete index larger than length of collection")
