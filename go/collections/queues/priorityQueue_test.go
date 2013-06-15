@@ -1,40 +1,20 @@
 package queues
 
+// Note: I should add more test cases similar to what is in container/heap/heap.go file,
+// ...but this is good.
 import (
-	"errors"
 	"testing"
 )
 
 type Ints []int
 
-func (p *Ints) Len() int             { return len(*p) }
-func (p *Ints) Less(i, j int) bool   { return (*p)[i] < (*p)[j] }
-func (p *Ints) Swap(i, j int)        { (*p)[i], (*p)[j] = (*p)[j], (*p)[i] }
-func (p *Ints) At(i int) interface{} { return (*p)[i] }
-func (p *Ints) Set(i int, val interface{}) error {
-	v, ok := val.(int)
-	if ok {
-		(*p)[i] = v
-		return nil
-	}
-	return errors.New("Set() passed in type differs from what the collection can hold")
-}
-func (p *Ints) Push(val interface{}) error {
-	v, ok := val.(int)
-	if ok {
-		*p = append(*p, v)
-		return nil
-	}
-	return errors.New("Push: passed in type is not int")
-}
-func (p *Ints) Pop() (v interface{}, err error) {
-	if p.Len() < 1 {
-		err = errors.New("Cannot delete index larger than length of collection")
-		return
-	}
-	*p, v = (*p)[:p.Len()-1], (*p)[p.Len()-1]
-	return
-}
+func (p *Ints) Len() int                 { return len(*p) }
+func (p *Ints) Less(i, j int) bool       { return (*p)[i] < (*p)[j] }
+func (p *Ints) Swap(i, j int)            { (*p)[i], (*p)[j] = (*p)[j], (*p)[i] }
+func (p *Ints) At(i int) interface{}     { return (*p)[i] }
+func (p *Ints) Set(i int, v interface{}) { (*p)[i] = v.(int) }
+func (p *Ints) Push(v interface{})       { *p = append(*p, v.(int)) }
+func (p *Ints) Pop() (v interface{})     { *p, v = (*p)[:p.Len()-1], (*p)[p.Len()-1]; return }
 
 func TestNewPriorityQueue(t *testing.T) {
 	tests := []struct {
@@ -51,7 +31,7 @@ func TestNewPriorityQueue(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		NewPriorityQueue(&test.In)
+		Init(&test.In)
 		ints := Ints(test.In)
 		failed := false
 		for i, v := range ints {
@@ -66,38 +46,19 @@ func TestNewPriorityQueue(t *testing.T) {
 	}
 }
 
-func TestMaximum(t *testing.T) {
+func TestPeek(t *testing.T) {
 	tests := []struct {
-		In        Interface
-		Want      int
-		WantError string
+		In   Interface
+		Want int
 	}{
-		{
-			Interface((*Ints)(&[]int{})),
-			0,
-			"Cannot call maximum on empty heap",
-		},
 		{
 			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			16,
-			"",
 		},
 	}
 	for _, test := range tests {
-		got, gotErr := Maximum(test.In)
-		if gotErr != nil {
-			if gotErr.Error() != test.WantError {
-				t.Errorf("Incorrect error received")
-			}
-			continue
-		}
-		gotInt, ok := got.(int)
-		if !ok {
-			t.Errorf("Could not convert returned value %v to int", gotInt)
-			continue
-		}
-		if gotInt != test.Want {
-			t.Errorf("Incorrect maximum, received %v, wanted %v", gotInt, test.Want)
+		if Peek(test.In).(int) != test.Want {
+			t.Errorf("Incorrect maximum, received %v, wanted %v", Peek(test.In).(int), test.Want)
 		}
 	}
 }
@@ -108,38 +69,16 @@ func TestChange(t *testing.T) {
 		InIToChange  int
 		InIValChange interface{}
 		WantInts     Ints
-		WantError    string
 	}{
-		{
-			Interface((*Ints)(&[]int{})),
-			0,
-			0,
-			Ints([]int{}),
-			"Cannot change index 0, out of bounds of collection (length 0)",
-		},
 		{
 			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			8,
 			15,
 			Ints([]int{16, 15, 10, 14, 7, 9, 3, 2, 8, 1}),
-			"",
-		},
-		{
-			Interface((*Ints)(&[]int{1})),
-			0,
-			"hello",
-			Ints([]int{1}),
-			"Set() passed in type differs from what the collection can hold",
 		},
 	}
 	for _, test := range tests {
-		gotErr := Change(test.In, test.InIToChange, test.InIValChange)
-		if gotErr != nil {
-			if gotErr.Error() != test.WantError {
-				t.Errorf("Incorrect error: received %v, wanted %v", gotErr, test.WantError)
-			}
-			continue
-		}
+		Change(test.In, test.InIToChange, test.InIValChange)
 		changedInts := test.In.(*Ints)
 		failed := false
 		for i, v := range *changedInts {
@@ -156,38 +95,23 @@ func TestChange(t *testing.T) {
 
 func TestPush(t *testing.T) {
 	tests := []struct {
-		In        Interface
-		PushVal   interface{}
-		WantInts  Ints
-		WantError string
+		In       Interface
+		PushVal  interface{}
+		WantInts Ints
 	}{
 		{
 			Interface((*Ints)(&[]int{})),
 			0,
 			Ints([]int{0}),
-			"",
 		},
 		{
 			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			15,
 			Ints([]int{16, 15, 10, 8, 14, 9, 3, 2, 4, 1, 7}),
-			"",
-		},
-		{
-			Interface((*Ints)(&[]int{1})),
-			"hello",
-			Ints([]int{1}),
-			"Push: passed in type is not int",
 		},
 	}
 	for _, test := range tests {
-		gotErr := Push(test.In, test.PushVal)
-		if gotErr != nil {
-			if gotErr.Error() != test.WantError {
-				t.Errorf("Incorrect error: received %v, wanted %v", gotErr, test.WantError)
-			}
-			continue
-		}
+		Push(test.In, test.PushVal)
 		changedInts := test.In.(*Ints)
 		failed := false
 		for i, v := range *changedInts {
@@ -204,37 +128,22 @@ func TestPush(t *testing.T) {
 
 func TestPop(t *testing.T) {
 	tests := []struct {
-		In        Interface
-		PopIndex  int
-		WantInts  Ints
-		WantV     int
-		WantError string
+		In       Interface
+		PopIndex int
+		WantInts Ints
+		WantV    int
 	}{
-		{
-			Interface((*Ints)(&[]int{})),
-			0,
-			Ints([]int{}),
-			0,
-			"Cannot delete index larger than length of collection",
-		},
 		{
 			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			1,
 			Ints([]int{14, 8, 10, 4, 7, 9, 3, 2, 1}),
 			//Ints([]int{16, 8, 10, 4, 7, 9, 3, 2, 1}),
 			16,
-			"",
 		},
 	}
 	for _, test := range tests {
-		got, gotErr := Pop(test.In)
-		if gotErr != nil {
-			if gotErr.Error() != test.WantError {
-				t.Errorf("Incorrect error: received %v, wanted %v", gotErr, test.WantError)
-			}
-			continue
-		}
-		if test.WantV != got.(int) {
+		got := Pop(test.In).(int)
+		if test.WantV != got {
 			t.Errorf("Return value %v != wanted %v", got, test.WantV)
 		}
 		changedInts := test.In.(*Ints)
@@ -281,7 +190,7 @@ func TestRemove1(t *testing.T) {
 	h.verify(t, 0)
 	// removes the max every time
 	for i := 0; h.Len() > 0; i++ {
-		x, _ := Remove(h, 0)
+		x := Remove(h, 0)
 		if x.(int) != 9-i {
 			t.Errorf("Remove(0) got %d; want %d", x, i)
 		}
@@ -299,7 +208,7 @@ func TestRemove2(t *testing.T) {
 	// tests that it removed all
 	m := make(map[int]bool)
 	for h.Len() > 0 {
-		x, _ := Remove(h, (h.Len()-1)/2) // remove from middle
+		x := Remove(h, (h.Len()-1)/2) // remove from middle
 		m[x.(int)] = true
 		h.verify(t, 0)
 	}
