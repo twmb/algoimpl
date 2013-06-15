@@ -6,132 +6,119 @@ import (
 	"github.com/twmb/algoimpl/go/sort"
 )
 
-func left(i int) int   { return 2*i + 1 }     // 2 * (i + 1) - 1 because 0 indexed instead of 1
-func right(i int) int  { return 2*i + 2 }     // 2 * (i + 1) - 1 + 1
-func parent(i int) int { return (i+1)/2 - 1 } // (i + 1) / 2 - 1
+func left(i int) int  { return 2*i + 1 } // 2 * (i + 1) - 1 because 0 indexed instead of 1
+func right(i int) int { return 2*i + 2 } // 2 * (i + 1) - 1 + 1
 
 // This interface embeds the Sortable interface, meaning elements
 // can be compared and swapped. It extends the Sortable interface by
 // allowing access to individual elements or by appending to the collection.
-// The Append and Delete functions must return the same data type that is passed
-// in to create a priorty queue, otherwise the Insert and Delete functions below
-// will not work.
-type ModSortable interface {
+type Interface interface {
 	sort.Sortable
+	// Returns the value at the index.
 	At(int) interface{}
+	// Sets the value at the index to a new value.
 	Set(i int, val interface{}) error
-	Append(val interface{}) (ModSortable, error)
-	Delete(index int) (ModSortable, error)
+	// Adds a value to the end of the collection.
+	Push(val interface{}) error
+	// Removes the value at the end of the collection.
+	Pop() (interface{}, error)
 }
 
-// A heap that can be appended to or can have individual values accessed
-// or changed.
-type ModifiableHeap struct {
-	collection ModSortable
-	size       int
-}
-
-func heapify(heap ModifiableHeap, i int) {
+// shuffle down if value at i is smaller than children
+// O(lg n), O(1) if it is not
+func shuffleDown(heap Interface, i int) {
 	l := left(i)
 	r := right(i)
 	largestI := i
-	if l < heap.size && heap.collection.Less(i, l) {
+	if l < heap.Len() && heap.Less(i, l) {
 		largestI = l
 	}
-	if r < heap.size && heap.collection.Less(largestI, r) {
+	if r < heap.Len() && heap.Less(largestI, r) {
 		largestI = r
 	}
 	if largestI != i {
-		heap.collection.Swap(largestI, i)
-		heapify(heap, largestI)
+		heap.Swap(largestI, i)
+		shuffleDown(heap, largestI)
+	}
+}
+
+// shuffle up if the value at index i larger than the parent
+// O(lg n), O(1) if it is not
+func shuffleUp(h Interface, i int) {
+	for {
+		pi := (i - 1) / 2 // parent: (i + 1) / 2 - 1
+		if i == pi || !h.Less(pi, i) {
+			break
+		}
+		h.Swap(pi, i)
+		i = pi
 	}
 }
 
 // Returns a new priority queue. It can be modified using the heap
 // functions below, all of which run in O(lg n) time.
-func NewPriorityQueue(stuff ModSortable) *ModifiableHeap {
+func NewPriorityQueue(stuff Interface) {
 	sort.BuildHeap(stuff)
-	return &ModifiableHeap{stuff, stuff.Len()}
 }
 
 // Returns the maximum of the heap.
-func (h *ModifiableHeap) Maximum() (interface{}, error) {
-	if h.collection.Len() > 0 {
-		return h.collection.At(0), nil
+func Maximum(h Interface) (interface{}, error) {
+	if h.Len() > 0 {
+		return h.At(0), nil
 	}
 	return nil, errors.New("Cannot call maximum on empty heap")
 }
 
-// Returns the maximum of the heap, reorganizes and decrements the size
-// by one.
-func (h *ModifiableHeap) ExtractMax() (interface{}, error) {
-	if h.size < 0 {
-		return 0, errors.New("heap underflow")
-	}
-	max := h.collection.At(0)
-	h.collection.Swap(0, h.size-1)
-	h.size--
-	heapify(*h, 0)
-	return max, nil
-}
-
 // This function will change the value at the index and will reorganize
 // the priority queue as appropriate.
-func (h *ModifiableHeap) ChangeValue(i int, to interface{}) error {
-	if i >= h.collection.Len() {
-		return fmt.Errorf("Cannot change index %v, out of bounds of collection (length %v)", i, h.collection.Len())
+func Change(h Interface, i int, to interface{}) error {
+	if i >= h.Len() {
+		return fmt.Errorf("Cannot change index %v, out of bounds of collection (length %v)", i, h.Len())
 	}
-	err := h.collection.Set(i, to)
+	err := h.Set(i, to)
 	if err != nil {
 		return err
 	}
-	pi := parent(i)
-	// shuffle up if the changed value is now larger than the parents
-	// O(lg n), O(1) if it is not
-	for i > 0 && h.collection.Less(pi, i) {
-		h.collection.Swap(pi, i)
-		i = pi
-		pi = parent(i)
-	}
-	// shuffle down if changed value smaller than children
-	// O(lg n), O(1) if it is not
-	heapify(*h, i)
+	shuffleUp(h, i)
+	shuffleDown(h, i)
 	return nil
 }
 
-// The caller must make sure that the Append function returns the same
-// type that is originally used in NewPriorityQueue.
-// This function will insert a new value into a priority queue and will
-// error if the value is not of the same type. If the return value of
-// Append is not the same as what was originally used in NewPriorityQueue,
-// this function will panic.
-func (h *ModifiableHeap) Insert(val interface{}) error {
-	returned, err := h.collection.Append(val)
+// This function will push a new value into a priority queue should
+// error if the value is not of the same type.
+func Push(h Interface, val interface{}) error {
+	err := h.Push(val)
 	if err != nil {
 		return err
 	}
-	h.collection = returned
-	h.size++
-	err = h.ChangeValue(h.size-1, val) // yes, changes twice, cum at me bra
-	if err != nil {
-		return err
-	}
+	shuffleUp(h, h.Len()-1)
 	return nil
 }
 
-// This will remove the index i from the heap.
-// This function puts the to-remove value at the end of the heap,
-// which should then be removed officially with the ModSortable interface's Delete function.
-func (h *ModifiableHeap) Delete(i int) error {
-	if i >= h.collection.Len() {
-		return errors.New("Cannot delete index larger than length of collection")
+// Returns the maximum of the heap and reorganizes.
+// The complexity is O(lg n)
+func Pop(h Interface) (max interface{}, err error) {
+	max, err = h.Pop()
+	if err != nil {
+		return
 	}
-	h.collection.Swap(h.collection.Len()-1, i)
-	returned, err := h.collection.Delete(h.collection.Len() - 1)
-	if err != nil { // should never happen
-		return err
+	h.Swap(h.Len()-1, 0)
+	max, err = h.Pop()
+	shuffleDown(h, 0)
+	return
+}
+
+// Removes and erturns the element at index i
+func Remove(h Interface, i int) (v interface{}, err error) {
+	if i > h.Len()-1 {
+		return nil, errors.New("Index too large")
 	}
-	h.collection = returned
-	heapify(*h, i)
-	return nil
+	n := h.Len() - 1
+	h.Swap(n, i)
+	v, err = h.Pop()
+	if n != i {
+		shuffleDown(h, i)
+		shuffleUp(h, i)
+	}
+	return
 }
