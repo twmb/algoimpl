@@ -1,7 +1,7 @@
 // Implements merge sort on []ints.
 // Knowing that the underlying type is a slice allows for using channels.
 // This also allows for using goroutines.
-package dupsort
+package integers
 
 func mergeCombineInts(lch, rch <-chan int, tch chan<- int) {
 	lv, lopen := <-lch

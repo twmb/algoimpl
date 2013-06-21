@@ -1,4 +1,4 @@
-package dupsort
+package integers
 
 import "testing"
 
@@ -7,8 +7,8 @@ func TestMergeSortInts(t *testing.T) {
 		In, Want []int
 	}{
 		{[]int{21, -10, 54, 0, 1098309}, []int{-10, 0, 21, 54, 1098309}},
-		{Ints([]int{}), Ints([]int{})},
-		{Ints([]int{4, 3, 2, 1, 2, 3}), Ints([]int{1, 2, 2, 3, 3, 4})},
+		{[]int{}, []int{}},
+		{[]int{4, 3, 2, 1, 2, 3}, []int{1, 2, 2, 3, 3, 4}},
 	}
 
 	for _, test := range tests {
