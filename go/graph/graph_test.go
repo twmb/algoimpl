@@ -13,6 +13,15 @@ func (n *Node) contains(other *Node) bool {
 	return false
 }
 
+func valueSliceContains(slice []*Node, key interface{}) bool {
+	for i := range slice {
+		if slice[i].Value == key {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Graph) verify(t *testing.T) {
 	// over all the nodes
 	for i, node := range g.nodes {
