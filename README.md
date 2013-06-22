@@ -1,9 +1,15 @@
 # Algoimpl
 
-[Eleven months](http://github.com/twmb/Algorithms) is a long time to not look at undocumented code. 
+A collection of various algorithms in various languages. I have tried
+to organize them into appropriate directories in case anybody wants to
+import some of those code into their libraries.
 
-I will implement various algorithms in this repository. When I feel that
-this repo surpasses my other Algorithms repo in quality (which should not
-be hard if I consistently work on this) and all my old algorithms are
-replicated, I will delete my old repo.
+Everything in here is free for copying and pasting or use anywhere.
+
+Algorithms currently un-implemented from old, deleted repo:  
+- Inversions 
+- Kargers  
+- Select
+
+[CC0](https://creativecommons.org/publicdomain/zero/1.0/)
 
