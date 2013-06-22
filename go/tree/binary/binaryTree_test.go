@@ -79,10 +79,10 @@ func TestDelete(t *testing.T) {
 		tree.Insert(Int(i))
 	}
 	for i := 0; i < 10; i++ {
-    returned := tree.Delete(Int(i)) // deletes root each time
-    if (*returned).(Int) != Int(i) {
-      t.Errorf("returned value %v != expected %v", *returned, i)
-    }
+		returned := tree.Delete(Int(i)) // deletes root each time
+		if (*returned).(Int) != Int(i) {
+			t.Errorf("returned value %v != expected %v", *returned, i)
+		}
 		verify(tree.root, t)
 	}
 	tree = New()
@@ -90,10 +90,10 @@ func TestDelete(t *testing.T) {
 		tree.Insert(Int(i))
 	}
 	for i := 10; i >= 0; i-- {
-    returned := tree.Delete(Int(i))
-    if (*returned).(Int) != Int(i) {
-      t.Errorf("returned value %v != expected %v", *returned, i)
-    }
+		returned := tree.Delete(Int(i))
+		if (*returned).(Int) != Int(i) {
+			t.Errorf("returned value %v != expected %v", *returned, i)
+		}
 		verify(tree.root, t)
 	}
 	tree = New()
