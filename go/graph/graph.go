@@ -68,14 +68,6 @@ func (g *Graph) MakeNode(v interface{}) *Node {
 	return newNode
 }
 
-// Returns the slice of pointers to the graph for iterating over.
-// This package assumes that individual indices will not be modified
-// inappropriately. If they are, then the adjacency list structure
-// will not hold.
-func (g *Graph) Nodes() []*Node {
-	return g.nodes
-}
-
 // Creates an edge between two nodes in a graph.
 // If the graph is undirected, this function also connects the to node to the from node.
 func (g *Graph) Connect(from, to *Node) error {
@@ -90,12 +82,4 @@ func (g *Graph) Connect(from, to *Node) error {
 		to.adjacent = append(to.adjacent, from)
 	}
 	return nil
-}
-
-// Returns the slice of pointers to adjacent nodes.
-// This package assumes that individual indices will not be modified
-// inappropriately. If they are, then the adjacency list structure
-// will not hold.
-func (n *Node) AdjacentNodes() []*Node {
-	return n.adjacent
 }
