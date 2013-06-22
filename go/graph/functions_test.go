@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -10,7 +9,7 @@ func TestTopologicalSort(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
-	nodes := graph.Nodes()
+	nodes := graph.nodes
 	// create graph on page 613 of CLRS ed. 3
 	nodes = append(nodes, graph.MakeNode("shirt"))
 	nodes = append(nodes, graph.MakeNode("tie"))
@@ -31,7 +30,7 @@ func TestTopologicalSort(t *testing.T) {
 	graph.Connect(nodes[6], nodes[7])
 	graph.Connect(nodes[8], nodes[7])
 	graph.verify(t)
-	wantOrder := make([]*Node, len(graph.Nodes()))
+	wantOrder := make([]*Node, len(graph.nodes))
 	wantOrder[0] = nodes[8] // socks
 	wantOrder[1] = nodes[5] // undershorts
 	wantOrder[2] = nodes[6] // pants
@@ -42,7 +41,6 @@ func TestTopologicalSort(t *testing.T) {
 	wantOrder[7] = nodes[1] // tie
 	wantOrder[8] = nodes[2] // jacket
 	result := TopologicalSort(graph)
-	fmt.Println(result)
 	for i := range result {
 		if result[i] != wantOrder[i] {
 			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i].Value, wantOrder[i].Value)
@@ -55,7 +53,7 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestStronglyConnectedComponents: unable to create directed graph")
 	}
-	nodes := graph.Nodes()
+	nodes := graph.nodes
 	// create SCC graph on page 616 of CLRS ed 3
 	nodes = append(nodes, graph.MakeNode("c")) //0
 	nodes = append(nodes, graph.MakeNode("g")) //1
@@ -94,7 +92,6 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	want[2][1] = nodes[1]
 	want[3][0] = nodes[3]
 	components := StronglyConnectedComponents(graph)
-	fmt.Println(components)
 	for j := range components {
 		for i := range want[j] {
 			if !valueSliceContains(components[j], want[j][i].Value) {

@@ -82,7 +82,7 @@ func TestMakeNode(t *testing.T) {
 		graph.MakeNode(i)
 	}
 	graph.verify(t)
-	for i, node := range graph.Nodes() {
+	for i, node := range graph.nodes {
 		if node.Value != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
@@ -95,7 +95,7 @@ func TestMakeNode(t *testing.T) {
 		graph.MakeNode(i)
 	}
 	graph.verify(t)
-	for i, node := range graph.Nodes() {
+	for i, node := range graph.nodes {
 		if node.Value != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
@@ -110,14 +110,14 @@ func TestConnect(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		graph.MakeNode(i)
 	}
-	nodes := graph.Nodes()
+	nodes := graph.nodes
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
 			graph.Connect(nodes[i], nodes[(i+1+j)%len(nodes)])
 		}
 	}
 	graph.verify(t)
-	for i, node := range graph.Nodes() {
+	for i, node := range graph.nodes {
 		if node.Value != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
@@ -129,14 +129,14 @@ func TestConnect(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		graph.MakeNode(i)
 	}
-	nodes = graph.Nodes()
+	nodes = graph.nodes
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
 			graph.Connect(nodes[i], nodes[(i+1+j)%len(nodes)])
 		}
 	}
 	graph.verify(t)
-	for i, node := range graph.Nodes() {
+	for i, node := range graph.nodes {
 		if node.Value != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
