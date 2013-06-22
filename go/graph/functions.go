@@ -17,7 +17,7 @@ func dfs(node *Node, finishList *[]*Node) {
 	*finishList = append(*finishList, node)
 }
 
-// Topologically sorts a directed, acyclic graph.
+// Topologically sorts a directed acyclic graph.
 // If the graph is cyclic, the sort order will change
 // based on which node the sort starts on. O(V+E) complexity.
 func TopologicalSort(g *Graph) []*Node {
@@ -38,7 +38,7 @@ func TopologicalSort(g *Graph) []*Node {
 }
 
 // Returns reversed copy of the directed graph g. O(V+E) complexity.
-func ReverseGraph(g *Graph) *Graph {
+func Reverse(g *Graph) *Graph {
 	reversed, _ := New("directed")
 	// O(V)
 	for _, node := range g.nodes {
@@ -75,7 +75,7 @@ func StronglyConnectedComponents(g *Graph) [][]*Node {
 		finishOrder[i].state = unseen
 	}
 	// creates a reversed graph with empty parents
-	reversed := ReverseGraph(g)
+	reversed := Reverse(g)
 	for _, sink := range finishOrder {
 		if reversed.nodes[sink.graphIndex].state == unseen {
 			component := make([]*Node, 0)

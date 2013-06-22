@@ -1,4 +1,5 @@
 // Implements an adjacency list graph as a slice of generic nodes
+// and includes some useful graph functions.
 package graph
 
 import (
@@ -6,11 +7,17 @@ import (
 	"fmt"
 )
 
+// An adjacency slice representation of a graph. Can be directed or undirected.
 type Graph struct {
 	nodes []*Node
 	kind  int // 1 for directed, 0 otherwise
 }
 
+// Prints in the following format:
+//    g->{
+//      node->{node, node, node,}
+//      node->{node, node, node,}
+//    }
 func (g *Graph) String() string {
 	rVal := "g->{\n"
 	for i := range g.nodes {
@@ -20,6 +27,8 @@ func (g *Graph) String() string {
 	return rVal
 }
 
+// Contains a value on the graph and
+// other metadata needed for functions.
 type Node struct {
 	Value      interface{}
 	adjacent   []*Node
@@ -28,6 +37,9 @@ type Node struct {
 	parent     *Node // also used as metadata
 }
 
+// Prints in the following format:
+//    value->{value, value, value,}
+// Where -> represents an edges from a node to other nodes.
 func (n *Node) String() string {
 	rVal := ""
 	rVal += fmt.Sprint(n.Value) + "->{"
@@ -38,6 +50,7 @@ func (n *Node) String() string {
 	return rVal
 }
 
+// Incase the user abused newG := &Graph{}...
 func (g *Graph) lazyInit() {
 	if g.nodes == nil {
 		g.nodes = []*Node{}
