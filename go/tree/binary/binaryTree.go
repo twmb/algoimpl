@@ -1,12 +1,4 @@
 // Package binary has functions for abusing a binary tree.
-//
-// To use the binary tree functions, start with an empty
-// tree.Interface and Insert all elements into it:
-//     empty := Ints([]int{})
-//     for i := 0; i < 10; i++ {
-//       binary.Insert(empty)
-//     }
-//
 package binary
 
 type BinaryTree struct {
