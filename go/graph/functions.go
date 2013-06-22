@@ -22,7 +22,7 @@ func dfs(node *Node, finishList *[]*Node) {
 // based on which node the sort starts on. O(V+E) complexity.
 func TopologicalSort(g *Graph) []*Node {
 	g.lazyInit()
-	sorted := make([]*Node, 0)
+	sorted := make([]*Node, 0, len(g.nodes))
 	// sort preorder (first jacket, then shirt)
 	for _, node := range g.nodes {
 		if node.state == unseen {
