@@ -3,6 +3,7 @@ package graph
 
 import (
 	"errors"
+	"fmt"
 )
 
 type Graph struct {
@@ -10,10 +11,31 @@ type Graph struct {
 	kind  int // 1 for directed, 0 otherwise
 }
 
+func (g *Graph) String() string {
+	rVal := "g->{\n"
+	for i := range g.nodes {
+		rVal += "\t" + g.nodes[i].String() + "\n"
+	}
+	rVal += "}\n"
+	return rVal
+}
+
 type Node struct {
 	Value      interface{}
 	adjacent   []*Node
 	graphIndex int
+	state      int   // used for sort / search / other functions as metadata
+	parent     *Node // also used as metadata
+}
+
+func (n *Node) String() string {
+	rVal := ""
+	rVal += fmt.Sprint(n.Value) + "->{"
+	for adj := range n.adjacent {
+		rVal += fmt.Sprint(n.adjacent[adj].Value) + ", "
+	}
+	rVal += "}"
+	return rVal
 }
 
 func (g *Graph) lazyInit() {
@@ -74,6 +96,6 @@ func (g *Graph) Connect(from, to *Node) error {
 // This package assumes that individual indices will not be modified
 // inappropriately. If they are, then the adjacency list structure
 // will not hold.
-func (n *Node) Adjacent() []*Node {
+func (n *Node) AdjacentNodes() []*Node {
 	return n.adjacent
 }
