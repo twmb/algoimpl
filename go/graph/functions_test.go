@@ -11,15 +11,15 @@ func TestTopologicalSort(t *testing.T) {
 	}
 	nodes := graph.nodes
 	// create graph on page 613 of CLRS ed. 3
-	nodes = append(nodes, graph.MakeNode("shirt"))
-	nodes = append(nodes, graph.MakeNode("tie"))
-	nodes = append(nodes, graph.MakeNode("jacket"))
-	nodes = append(nodes, graph.MakeNode("belt"))
-	nodes = append(nodes, graph.MakeNode("watch"))
-	nodes = append(nodes, graph.MakeNode("undershorts"))
-	nodes = append(nodes, graph.MakeNode("pants"))
-	nodes = append(nodes, graph.MakeNode("shoes"))
-	nodes = append(nodes, graph.MakeNode("socks"))
+	nodes = append(nodes, graph.MakeNode()) // shirt
+	nodes = append(nodes, graph.MakeNode()) // tie
+	nodes = append(nodes, graph.MakeNode()) // jacket
+	nodes = append(nodes, graph.MakeNode()) // belt
+	nodes = append(nodes, graph.MakeNode()) // watch
+	nodes = append(nodes, graph.MakeNode()) // undershorts
+	nodes = append(nodes, graph.MakeNode()) // pants
+	nodes = append(nodes, graph.MakeNode()) // shoes
+	nodes = append(nodes, graph.MakeNode()) // socks
 	graph.Connect(nodes[0], nodes[1])
 	graph.Connect(nodes[1], nodes[2])
 	graph.Connect(nodes[0], nodes[3])
@@ -43,7 +43,7 @@ func TestTopologicalSort(t *testing.T) {
 	result := TopologicalSort(graph)
 	for i := range result {
 		if result[i] != wantOrder[i] {
-			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i].Value, wantOrder[i].Value)
+			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i], wantOrder[i])
 		}
 	}
 }
@@ -55,14 +55,14 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	}
 	nodes := graph.nodes
 	// create SCC graph on page 616 of CLRS ed 3
-	nodes = append(nodes, graph.MakeNode("c")) //0
-	nodes = append(nodes, graph.MakeNode("g")) //1
-	nodes = append(nodes, graph.MakeNode("f")) //2
-	nodes = append(nodes, graph.MakeNode("h")) //3
-	nodes = append(nodes, graph.MakeNode("d")) //4
-	nodes = append(nodes, graph.MakeNode("b")) //5
-	nodes = append(nodes, graph.MakeNode("e")) //6
-	nodes = append(nodes, graph.MakeNode("a")) //7
+	nodes = append(nodes, graph.MakeNode()) //0, c
+	nodes = append(nodes, graph.MakeNode()) //1, g
+	nodes = append(nodes, graph.MakeNode()) //2, f
+	nodes = append(nodes, graph.MakeNode()) //3, h
+	nodes = append(nodes, graph.MakeNode()) //4, d
+	nodes = append(nodes, graph.MakeNode()) //5, b
+	nodes = append(nodes, graph.MakeNode()) //6, e
+	nodes = append(nodes, graph.MakeNode()) //7, a
 	graph.Connect(nodes[0], nodes[1])
 	graph.Connect(nodes[0], nodes[4])
 	graph.Connect(nodes[1], nodes[2])
@@ -94,9 +94,18 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	components := StronglyConnectedComponents(graph)
 	for j := range components {
 		for i := range want[j] {
-			if !valueSliceContains(components[j], want[j][i].Value) {
-				t.Errorf("component slice does %v does not contained wanted value %v", components[j], want[j][i].Value)
+			if !componentContains(components[j], want[j][i]) {
+				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
 			}
 		}
 	}
+}
+
+func componentContains(component []*Node, node *Node) bool {
+	for i := range component {
+		if component[i].Index == node.Index { // not technically accurate but it validates these tests
+			return true
+		}
+	}
+	return false
 }

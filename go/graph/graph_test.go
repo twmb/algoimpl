@@ -4,18 +4,9 @@ import (
 	"testing"
 )
 
-func (n *Node) contains(other *Node) bool {
-	for _, v := range n.adjacent {
-		if v == other {
-			return true
-		}
-	}
-	return false
-}
-
-func valueSliceContains(slice []*Node, key interface{}) bool {
-	for i := range slice {
-		if slice[i].Value == key {
+func (g *Graph) edges(from, to *Node) bool {
+	for _, v := range g.adjacents[from] {
+		if v == to {
 			return true
 		}
 	}
@@ -25,20 +16,20 @@ func valueSliceContains(slice []*Node, key interface{}) bool {
 func (g *Graph) verify(t *testing.T) {
 	// over all the nodes
 	for i, node := range g.nodes {
-		if node.graphIndex != i {
-			t.Errorf("node's graph index %v != actual graph index %v", node.graphIndex, i)
+		if node.Index != i {
+			t.Errorf("node's graph index %v != actual graph index %v", node.Index, i)
 		}
 		// over each adjacent node
-		for _, adjacentNode := range node.adjacent {
+		for _, adjacentNode := range g.adjacents[node] {
 			// check that the graph contains it in the correct position
-			if adjacentNode.graphIndex >= len(g.nodes) ||
-				g.nodes[adjacentNode.graphIndex] != adjacentNode {
+			if adjacentNode.Index >= len(g.nodes) ||
+				g.nodes[adjacentNode.Index] != adjacentNode {
 				t.Errorf("adjacent node %v does not belong to the graph", adjacentNode)
 			}
 			// if the graph is undirected, check that the adjacent node contains the original node back
 			if g.kind == 0 {
-				if !adjacentNode.contains(node) {
-					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node.Value, adjacentNode.Value)
+				if !g.edges(adjacentNode, node) {
+					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node, adjacentNode)
 				}
 			}
 		}
@@ -78,12 +69,13 @@ func TestMakeNode(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create undirected graph")
 	}
+	nodes := make(map[int]int, 0)
 	for i := 0; i < 10; i++ {
-		graph.MakeNode(i)
+		nodes[graph.MakeNode().Index] = i
 	}
 	graph.verify(t)
 	for i, node := range graph.nodes {
-		if node.Value != i {
+		if nodes[node.Index] != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
 	}
@@ -91,12 +83,13 @@ func TestMakeNode(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
+	nodes = make(map[int]int, 0)
 	for i := 0; i < 10; i++ {
-		graph.MakeNode(i)
+		nodes[graph.MakeNode().Index] = i
 	}
 	graph.verify(t)
 	for i, node := range graph.nodes {
-		if node.Value != i {
+		if nodes[node.Index] != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
 	}
@@ -107,8 +100,9 @@ func TestConnect(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create undirected graph")
 	}
+	mapped := make(map[*Node]int, 0)
 	for i := 0; i < 10; i++ {
-		graph.MakeNode(i)
+		mapped[graph.MakeNode()] = i
 	}
 	nodes := graph.nodes
 	for j := 0; j < 5; j++ {
@@ -118,7 +112,7 @@ func TestConnect(t *testing.T) {
 	}
 	graph.verify(t)
 	for i, node := range graph.nodes {
-		if node.Value != i {
+		if mapped[node] != i {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
 	}
@@ -126,8 +120,9 @@ func TestConnect(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
+	mapped = make(map[*Node]int, 0)
 	for i := 0; i < 10; i++ {
-		graph.MakeNode(i)
+		mapped[graph.MakeNode()] = i
 	}
 	nodes = graph.nodes
 	for j := 0; j < 5; j++ {
@@ -137,8 +132,8 @@ func TestConnect(t *testing.T) {
 	}
 	graph.verify(t)
 	for i, node := range graph.nodes {
-		if node.Value != i {
-			t.Errorf("Node at index %v != %v, wrong!", i, i)
+		if mapped[node] != i {
+			t.Errorf("Node at index %v = %v, != %v, wrong!", i, mapped[node], i)
 		}
 	}
 }

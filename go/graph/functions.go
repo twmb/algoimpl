@@ -6,12 +6,12 @@ const (
 )
 
 // O(V + E)
-func dfs(node *Node, finishList *[]*Node) {
+func (g *Graph) dfs(node *Node, finishList *[]*Node) {
 	node.state = seen
-	for _, adjacentNode := range node.adjacent {
+	for _, adjacentNode := range g.adjacents[node] {
 		if adjacentNode.state == unseen {
 			adjacentNode.parent = node
-			dfs(adjacentNode, finishList)
+			g.dfs(adjacentNode, finishList)
 		}
 	}
 	*finishList = append(*finishList, node)
@@ -26,7 +26,7 @@ func TopologicalSort(g *Graph) []*Node {
 	// sort preorder (first jacket, then shirt)
 	for _, node := range g.nodes {
 		if node.state == unseen {
-			dfs(node, &sorted)
+			g.dfs(node, &sorted)
 		}
 	}
 	// now make post order for correct sort (jacket follows shirt). O(V)
@@ -41,13 +41,13 @@ func TopologicalSort(g *Graph) []*Node {
 func Reverse(g *Graph) *Graph {
 	reversed, _ := New("directed")
 	// O(V)
-	for _, node := range g.nodes {
-		reversed.MakeNode(node.Value)
+	for _ = range g.nodes {
+		reversed.MakeNode()
 	}
 	// O(V + E)
 	for _, node := range g.nodes {
-		for _, adjacent := range node.adjacent {
-			reversed.Connect(reversed.nodes[adjacent.graphIndex], reversed.nodes[node.graphIndex])
+		for _, adjacent := range g.adjacents[node] {
+			reversed.Connect(reversed.nodes[adjacent.Index], reversed.nodes[node.Index])
 		}
 	}
 	return reversed
@@ -77,9 +77,9 @@ func StronglyConnectedComponents(g *Graph) [][]*Node {
 	// creates a reversed graph with empty parents
 	reversed := Reverse(g)
 	for _, sink := range finishOrder {
-		if reversed.nodes[sink.graphIndex].state == unseen {
+		if reversed.nodes[sink.Index].state == unseen {
 			component := make([]*Node, 0)
-			dfs(reversed.nodes[sink.graphIndex], &component)
+			reversed.dfs(reversed.nodes[sink.Index], &component)
 			components = append(components, component)
 		}
 	}
