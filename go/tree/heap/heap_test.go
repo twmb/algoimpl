@@ -3,7 +3,6 @@ package heap
 // Note: I should add more test cases similar to what is in container/heap/heap.go file,
 // ...but this is good.
 import (
-	"github.com/twmb/algoimpl/go/tree"
 	"testing"
 )
 
@@ -18,17 +17,17 @@ func (p *Ints) Pop() (v interface{}) { *p, v = (*p)[:p.Len()-1], (*p)[p.Len()-1]
 // Untested Init function, but it was tested before I deleted At() - it works, do not want to write right now.
 func TestPush(t *testing.T) {
 	tests := []struct {
-		In       tree.Interface
+		In       Interface
 		PushVal  interface{}
 		WantInts Ints
 	}{
 		{
-			tree.Interface((*Ints)(&[]int{})),
+			Interface((*Ints)(&[]int{})),
 			0,
 			Ints([]int{0}),
 		},
 		{
-			tree.Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
+			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			15,
 			Ints([]int{16, 15, 10, 8, 14, 9, 3, 2, 4, 1, 7}),
 		},
@@ -51,13 +50,13 @@ func TestPush(t *testing.T) {
 
 func TestPop(t *testing.T) {
 	tests := []struct {
-		In       tree.Interface
+		In       Interface
 		PopIndex int
 		WantInts Ints
 		WantV    int
 	}{
 		{
-			tree.Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
+			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			1,
 			Ints([]int{14, 8, 10, 4, 7, 9, 3, 2, 1}),
 			//Ints([]int{16, 8, 10, 4, 7, 9, 3, 2, 1}),
