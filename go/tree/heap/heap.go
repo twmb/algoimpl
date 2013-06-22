@@ -1,13 +1,18 @@
-package queues
+// Package heap has functions for creating and abusing a heap.
+// It is almost identically the same as containers/heap, so
+// just use that.
+package heap
 
 import (
 	"github.com/twmb/algoimpl/go/tree"
 )
 
-// Makes a heap out of the passed in collection that implements
-// tree.Interface. Runs in O(n) time, where n = h.Len().
+// Creates a max heap out of an unorganized tree.Interface collection.
+// Runs in O(n) time, where n = h.Len().
 func Init(h tree.Interface) {
-	buildHeap(h)
+	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
+		shuffleDown(stuff, i, stuff.Len())
+	}
 }
 
 // Removes and returns the maximum of the heap and reorganizes.
@@ -25,7 +30,7 @@ func Push(h tree.Interface, val interface{}) {
 	shuffleUp(h, h.Len()-1)
 }
 
-// Removes and erturns the element at index i
+// Removes and returns the element at index i
 func Remove(h tree.Interface, i int) (v interface{}) {
 	n := h.Len() - 1
 	if n != i {
@@ -34,14 +39,6 @@ func Remove(h tree.Interface, i int) (v interface{}) {
 		shuffleUp(h, i)
 	}
 	return h.Pop()
-}
-
-// Creates a max heap out of an unorganized tree.Interface collection.
-// Runs in O(n) time.
-func buildHeap(stuff tree.Interface) {
-	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
-		shuffleDown(stuff, i, stuff.Len())
-	}
 }
 
 // Shuffles a smaller value at index i in a heap

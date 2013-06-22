@@ -1,4 +1,4 @@
-package queues
+package heap
 
 // Note: I should add more test cases similar to what is in container/heap/heap.go file,
 // ...but this is good.
