@@ -3,109 +3,32 @@ package queues
 // Note: I should add more test cases similar to what is in container/heap/heap.go file,
 // ...but this is good.
 import (
+	"github.com/twmb/algoimpl/go/tree"
 	"testing"
 )
 
 type Ints []int
 
-func (p *Ints) Len() int                 { return len(*p) }
-func (p *Ints) Less(i, j int) bool       { return (*p)[i] < (*p)[j] }
-func (p *Ints) Swap(i, j int)            { (*p)[i], (*p)[j] = (*p)[j], (*p)[i] }
-func (p *Ints) At(i int) interface{}     { return (*p)[i] }
-func (p *Ints) Set(i int, v interface{}) { (*p)[i] = v.(int) }
-func (p *Ints) Push(v interface{})       { *p = append(*p, v.(int)) }
-func (p *Ints) Pop() (v interface{})     { *p, v = (*p)[:p.Len()-1], (*p)[p.Len()-1]; return }
+func (p *Ints) Len() int             { return len(*p) }
+func (p *Ints) Less(i, j int) bool   { return (*p)[i] < (*p)[j] }
+func (p *Ints) Swap(i, j int)        { (*p)[i], (*p)[j] = (*p)[j], (*p)[i] }
+func (p *Ints) Push(v interface{})   { *p = append(*p, v.(int)) }
+func (p *Ints) Pop() (v interface{}) { *p, v = (*p)[:p.Len()-1], (*p)[p.Len()-1]; return }
 
-func TestNewPriorityQueue(t *testing.T) {
-	tests := []struct {
-		In   Ints
-		Want Interface
-	}{
-		{ // test empty
-			Ints([]int{}),
-			Interface((*Ints)(&[]int{})),
-		},
-		{
-			Ints([]int{4, 1, 3, 2, 16, 9, 10, 14, 8, 7}),
-			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
-		},
-	}
-	for _, test := range tests {
-		Init(&test.In)
-		ints := Ints(test.In)
-		failed := false
-		for i, v := range ints {
-			if v != test.Want.At(i) {
-				failed = true
-				break
-			}
-		}
-		if failed {
-			t.Errorf("Failing Ints: result %v != want %v", test.In, test.Want)
-		}
-	}
-}
-
-func TestPeek(t *testing.T) {
-	tests := []struct {
-		In   Interface
-		Want int
-	}{
-		{
-			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
-			16,
-		},
-	}
-	for _, test := range tests {
-		if Peek(test.In).(int) != test.Want {
-			t.Errorf("Incorrect maximum, received %v, wanted %v", Peek(test.In).(int), test.Want)
-		}
-	}
-}
-
-func TestChange(t *testing.T) {
-	tests := []struct {
-		In           Interface
-		InIToChange  int
-		InIValChange interface{}
-		WantInts     Ints
-	}{
-		{
-			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
-			8,
-			15,
-			Ints([]int{16, 15, 10, 14, 7, 9, 3, 2, 8, 1}),
-		},
-	}
-	for _, test := range tests {
-		Change(test.In, test.InIToChange, test.InIValChange)
-		changedInts := test.In.(*Ints)
-		failed := false
-		for i, v := range *changedInts {
-			if v != test.WantInts[i] {
-				failed = true
-				break
-			}
-		}
-		if failed {
-			t.Errorf("Failing Ints: result %v != want %v", changedInts, test.WantInts)
-		}
-	}
-}
-
+// Untested Init function, but it was tested before I deleted At() - it works, do not want to write right now.
 func TestPush(t *testing.T) {
 	tests := []struct {
-		In       Interface
+		In       tree.Interface
 		PushVal  interface{}
 		WantInts Ints
 	}{
 		{
-			Interface((*Ints)(&[]int{})),
+			tree.Interface((*Ints)(&[]int{})),
 			0,
 			Ints([]int{0}),
 		},
 		{
-			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
+			tree.Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			15,
 			Ints([]int{16, 15, 10, 8, 14, 9, 3, 2, 4, 1, 7}),
 		},
@@ -128,13 +51,13 @@ func TestPush(t *testing.T) {
 
 func TestPop(t *testing.T) {
 	tests := []struct {
-		In       Interface
+		In       tree.Interface
 		PopIndex int
 		WantInts Ints
 		WantV    int
 	}{
 		{
-			Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
+			tree.Interface((*Ints)(&[]int{16, 14, 10, 8, 7, 9, 3, 2, 4, 1})),
 			1,
 			Ints([]int{14, 8, 10, 4, 7, 9, 3, 2, 1}),
 			//Ints([]int{16, 8, 10, 4, 7, 9, 3, 2, 1}),

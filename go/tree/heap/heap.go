@@ -1,73 +1,78 @@
 package queues
 
 import (
-	"github.com/twmb/algoimpl/go/sort"
+	"github.com/twmb/algoimpl/go/tree"
 )
 
-// Any type that implements heap.Interface may be used as a
-// max-heap. First call Init before using any of the heap functions.
-// The heap functions will panic if called inappropriately (as in, you
-// cannot call Peek on an empty heap).
-//
-// This interface embeds the Sortable interface, meaning elements
-// can be compared and swapped. It extends the Sortable interface by
-// allowing access to individual elements or by appending to the collection.
-//
-// Note that Push and Pop are for this package to call. To add or remove
-// elements from a heap, use heap.Push or heap.Pop.
-type Interface interface {
-	sort.Sortable
-	// Returns the value at the index.
-	At(int) interface{}
-	// Sets the value at the index to a new value.
-	Set(i int, val interface{})
-	// Adds a value to the end of the collection.
-	Push(val interface{})
-	// Removes the value at the end of the collection.
-	Pop() interface{}
-}
-
 // Makes a heap out of the passed in collection that implements
-// heap.Interface. Runs in O(n) time, where n = h.Len().
-func Init(h Interface) {
-	sort.BuildHeap(h)
+// tree.Interface. Runs in O(n) time, where n = h.Len().
+func Init(h tree.Interface) {
+	buildHeap(h)
 }
 
 // Removes and returns the maximum of the heap and reorganizes.
 // The complexity is O(lg n).
-func Pop(h Interface) interface{} {
+func Pop(h tree.Interface) interface{} {
 	n := h.Len() - 1
 	h.Swap(n, 0)
-	sort.ShuffleDown(h, 0, n)
+	shuffleDown(h, 0, n)
 	return h.Pop()
 }
 
 // This function will push a new value into a priority queue.
-func Push(h Interface, val interface{}) {
+func Push(h tree.Interface, val interface{}) {
 	h.Push(val)
-	sort.ShuffleUp(h, h.Len()-1)
-}
-
-// Returns the maximum of the heap.
-func Peek(h Interface) interface{} {
-	return h.At(0)
-}
-
-// This function will change the value at the index and will reorganize
-// the priority queue as appropriate.
-func Change(h Interface, i int, to interface{}) {
-	h.Set(i, to)
-	sort.ShuffleUp(h, i)
-	sort.ShuffleDown(h, i, h.Len())
+	shuffleUp(h, h.Len()-1)
 }
 
 // Removes and erturns the element at index i
-func Remove(h Interface, i int) (v interface{}) {
+func Remove(h tree.Interface, i int) (v interface{}) {
 	n := h.Len() - 1
 	if n != i {
 		h.Swap(n, i)
-		sort.ShuffleDown(h, i, n)
-		sort.ShuffleUp(h, i)
+		shuffleDown(h, i, n)
+		shuffleUp(h, i)
 	}
 	return h.Pop()
+}
+
+// Creates a max heap out of an unorganized tree.Interface collection.
+// Runs in O(n) time.
+func buildHeap(stuff tree.Interface) {
+	for i := stuff.Len()/2 - 1; i >= 0; i-- { // start at first non leaf (equiv. to parent of last leaf)
+		shuffleDown(stuff, i, stuff.Len())
+	}
+}
+
+// Shuffles a smaller value at index i in a heap
+// down to the appropriate spot. Complexity is O(lg n).
+func shuffleDown(heap tree.Interface, i, end int) {
+	for {
+		l := 2*i + 1
+		if l >= end { // int overflow? (in go source)
+			break
+		}
+		li := l
+		if r := l + 1; r < end && heap.Less(l, r) {
+			li = r // 2*i + 2
+		}
+		if heap.Less(li, i) {
+			break
+		}
+		heap.Swap(li, i)
+		i = li
+	}
+}
+
+// Shuffles a larger value in a heap at index i
+// up to the appropriate spot. Complexity is O(lg n).
+func shuffleUp(heap tree.Interface, i int) {
+	for {
+		pi := (i - 1) / 2 // (i + 1) / 2 - 1, parent
+		if i == pi || !heap.Less(pi, i) {
+			break
+		}
+		heap.Swap(pi, i)
+		i = pi
+	}
 }
