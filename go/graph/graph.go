@@ -82,6 +82,7 @@ func (g *Graph) MakeNode(v interface{}) *Node {
 
 // Creates an edge between two nodes in a graph.
 // If the graph is undirected, this function also connects the to node to the from node.
+// Returns an error if either of the nodes do not belong to the graph.
 func (g *Graph) Connect(from, to *Node) error {
 	if from.graphIndex >= len(g.nodes) || g.nodes[from.graphIndex] != from {
 		return errors.New("from node in connect call does not belong to the graph")
