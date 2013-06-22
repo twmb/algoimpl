@@ -73,6 +73,41 @@ func TestInsert(t *testing.T) {
 	verify(tree.root, t)
 }
 
+func TestDelete(t *testing.T) {
+	tree := New()
+	for i := 0; i < 10; i++ {
+		tree.Insert(Int(i))
+	}
+	for i := 0; i < 10; i++ {
+		tree.Delete(Int(i)) // deletes root each time
+		verify(tree.root, t)
+	}
+	tree = New()
+	for i := 10; i >= 0; i-- {
+		tree.Insert(Int(i))
+	}
+	for i := 10; i >= 0; i-- {
+		tree.Delete(Int(i))
+		verify(tree.root, t)
+	}
+	tree = New()
+	tree.Insert(Int(5)) //         5
+	tree.Insert(Int(3)) //   3         8
+	tree.Insert(Int(2)) // 2   3    6     9
+	tree.Insert(Int(3)) //0     4  5 7
+	tree.Insert(Int(0)) // 1
+	tree.Insert(Int(1))
+	tree.Insert(Int(4))
+	tree.Insert(Int(8))
+	tree.Insert(Int(6))
+	tree.Insert(Int(9))
+	tree.Insert(Int(5))
+	tree.Insert(Int(7))
+	tree.Delete(Int(8))
+	tree.Delete(Int(3))
+	verify(tree.root, t)
+}
+
 func TestWalk(t *testing.T) {
 	tree := New()
 	tree.Insert(Int(5)) //         5
