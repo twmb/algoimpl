@@ -48,7 +48,6 @@ func (g *Graph) lazyInit() {
 // If kind is "directed", returns a directed graph.
 // If kind is "undirected", this function will return an undirected graph.
 // Otherwise, this will return nil and an error.
-// Otherwise, returns an undirected graph.
 func New(kind string) (*Graph, error) {
 	switch kind {
 	case "directed":
