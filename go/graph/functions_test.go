@@ -31,15 +31,15 @@ func TestTopologicalSort(t *testing.T) {
 	graph.Connect(nodes[8], nodes[7])
 	graph.verify(t)
 	wantOrder := make([]*Node, len(graph.Nodes()))
-	wantOrder[0] = nodes[8]
-	wantOrder[1] = nodes[5]
-	wantOrder[2] = nodes[6]
-	wantOrder[3] = nodes[7]
-	wantOrder[4] = nodes[4]
-	wantOrder[5] = nodes[0]
-	wantOrder[6] = nodes[3]
-	wantOrder[7] = nodes[1]
-	wantOrder[8] = nodes[2]
+	wantOrder[0] = nodes[8] // socks
+	wantOrder[1] = nodes[5] // undershorts
+	wantOrder[2] = nodes[6] // pants
+	wantOrder[3] = nodes[7] // shoes
+	wantOrder[4] = nodes[4] // watch
+	wantOrder[5] = nodes[0] // shirt
+	wantOrder[6] = nodes[3] // belt
+	wantOrder[7] = nodes[1] // tie
+	wantOrder[8] = nodes[2] // jacket
 	result := TopologicalSort(graph)
 	for i := range result {
 		if result[i] != wantOrder[i] {
