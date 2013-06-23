@@ -7,19 +7,26 @@ import (
 	"fmt"
 )
 
+type GraphType int
+
+const (
+	Undirected = iota
+	Directed
+)
+
 // An adjacency slice representation of a graph. Can be directed or undirected.
 type Graph struct {
-	nodes     []*Node
-	adjacents map[*Node][]*Node
-	kind      int // 1 for directed, 0 otherwise
+	nodes []*node
+	edges map[*node][]Edge
+	kind  int // 1 for directed, 0 otherwise
 }
 
 func (g *Graph) String() string {
 	rVal := "g->{\n"
 	for _, node := range g.nodes {
 		rVal += "\t" + node.String() + "->{"
-		for _, adj := range g.adjacents[node] {
-			rVal += adj.String() + ","
+		for _, adj := range g.edges[node] {
+			rVal += adj.Start.node.String() + "->" + adj.End.node.String() + ","
 		}
 		rVal += "}\n"
 	}
@@ -27,21 +34,46 @@ func (g *Graph) String() string {
 	return rVal
 }
 
+type node struct {
+	graphIndex int
+	state      int   // used for metadata
+	data       int   // also used for metadata
+	parent     *node // also used for metadata
+	container  Node  // who holds me
+}
+
+// Node connects to a node on the graph. It can safely be used in maps.
 type Node struct {
-	Index  int
-	state  int   // used for metadata
-	parent *Node // also used for metadata
+	// In an effort to prevent access to the actual graph
+	// and so that the Node type can be used in a map while
+	// the graph changes metadata, the Node type encapsulates
+	// a pointer to the actual node data.
+	node *node
 }
 
-func (n *Node) String() string {
-	return fmt.Sprintf("%v", n.Index)
+func (n *node) String() string {
+	return fmt.Sprintf("%v", n.graphIndex)
 }
 
-// Incase the user abused newG := &Graph{}...
+type Edge struct {
+	Weight *int
+	Start  Node
+	End    Node
+	Kind   GraphType
+}
+
+func (e Edge) String() string {
+	rVal := fmt.Sprintf("{%v", *e.Weight)
+	rVal += " " + e.Start.node.String() + "->"
+	rVal += e.End.node.String() + "}"
+	return rVal
+}
+
+// In case the user abused newG := &Graph{}...
 func (g *Graph) lazyInit() {
 	if g.nodes == nil {
-		g.nodes = []*Node{}
-		g.adjacents = make(map[*Node][]*Node, 0)
+		g.nodes = []*node{}
+		g.edges = make(map[*node][]Edge, 0)
 	}
 }
 
@@ -52,40 +84,50 @@ func (g *Graph) lazyInit() {
 func New(kind string) (*Graph, error) {
 	switch kind {
 	case "directed":
-		return &Graph{nodes: []*Node{}, adjacents: make(map[*Node][]*Node), kind: 1}, nil
+		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge), kind: Directed}, nil
 	case "undirected":
-		return &Graph{nodes: []*Node{}, adjacents: make(map[*Node][]*Node)}, nil
+		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge)}, nil
 	default:
 		return nil, errors.New("Unrecognized graph kind")
 	}
 }
 
 // Creates a node, adds it to the graph and returns the new node.
-// A possibly way to manage what nodes are mapped to what values is to maintain a
-//     map[int]Value
-// on the graph caller side, with the int being the node.Index
-func (g *Graph) MakeNode() *Node {
+func (g *Graph) MakeNode() Node {
 	g.lazyInit()
-	newNode := &Node{Index: len(g.nodes)}
+	newNode := &node{graphIndex: len(g.nodes)}
+	newNode.container = Node{node: newNode}
 	g.nodes = append(g.nodes, newNode)
-	return newNode
+	return newNode.container
 }
 
-// Creates an edge between two nodes in a graph.
-// If the graph is undirected, this function also connects the to node to the from node.
-// Example usage:
-//     graph.Connect(node1, node2)
-// Returns an error if either of the nodes do not belong to the graph.
-func (g *Graph) Connect(from, to *Node) error {
-	if from.Index >= len(g.nodes) || g.nodes[from.Index] != from {
-		return errors.New("from node in connect call does not belong to the graph")
+// Creates and an edge and returns a pointer to a copy of the edge.
+// The return value will be nil if either of the nodes do not belong
+// to the graph.
+//
+// Calling connect multiple times on the same nodes will not
+// make multiple edges; the same edge will be returned on each call.
+func (g *Graph) Connect(from, to Node) *Edge {
+	if from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
+		return (*Edge)(nil)
 	}
-	if to.Index >= len(g.nodes) || g.nodes[to.Index] != to {
-		return errors.New("to node in connect call does not belong to the graph")
+	if to.node.graphIndex >= len(g.nodes) || g.nodes[to.node.graphIndex] != to.node {
+		return (*Edge)(nil)
 	}
-	g.adjacents[from] = append(g.adjacents[from], to)
-	if g.kind == 0 { // undirected graph
-		g.adjacents[to] = append(g.adjacents[to], from)
+	for _, edge := range g.edges[from.node] { // check if edge already exists
+		if edge.End == to || edge.Start == to && edge.End == from {
+			copyEdge := edge
+			return &copyEdge
+		}
 	}
-	return nil
+	newEdge := Edge{Weight: new(int), Start: from, End: to}
+	if g.kind == Directed {
+		newEdge.Kind = Directed
+	}
+	g.edges[from.node] = append(g.edges[from.node], newEdge)
+	if g.kind == Undirected { // for book keeping
+		g.edges[to.node] = append(g.edges[to.node], newEdge)
+	}
+	copyEdge := newEdge
+	return &copyEdge
 }
