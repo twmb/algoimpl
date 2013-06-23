@@ -9,7 +9,7 @@ func TestTopologicalSort(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
-	nodes := graph.nodes
+	nodes := make([]Node, 0)
 	// create graph on page 613 of CLRS ed. 3
 	nodes = append(nodes, graph.MakeNode()) // shirt
 	nodes = append(nodes, graph.MakeNode()) // tie
@@ -30,7 +30,7 @@ func TestTopologicalSort(t *testing.T) {
 	graph.Connect(nodes[6], nodes[7])
 	graph.Connect(nodes[8], nodes[7])
 	graph.verify(t)
-	wantOrder := make([]*Node, len(graph.nodes))
+	wantOrder := make([]Node, len(graph.nodes))
 	wantOrder[0] = nodes[8] // socks
 	wantOrder[1] = nodes[5] // undershorts
 	wantOrder[2] = nodes[6] // pants
@@ -53,7 +53,7 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	if err != nil {
 		t.Errorf("TestStronglyConnectedComponents: unable to create directed graph")
 	}
-	nodes := graph.nodes
+	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
 	nodes = append(nodes, graph.MakeNode()) //0, c
 	nodes = append(nodes, graph.MakeNode()) //1, g
@@ -78,11 +78,11 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	graph.Connect(nodes[6], nodes[7])
 	graph.Connect(nodes[7], nodes[5])
 	graph.verify(t)
-	want := make([][]*Node, 4)
-	want[0] = make([]*Node, 3)
-	want[1] = make([]*Node, 2)
-	want[2] = make([]*Node, 2)
-	want[3] = make([]*Node, 1)
+	want := make([][]Node, 4)
+	want[0] = make([]Node, 3)
+	want[1] = make([]Node, 2)
+	want[2] = make([]Node, 2)
+	want[3] = make([]Node, 1)
 	want[0][0] = nodes[6]
 	want[0][1] = nodes[7]
 	want[0][2] = nodes[5]
@@ -101,9 +101,9 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	}
 }
 
-func componentContains(component []*Node, node *Node) bool {
+func componentContains(component []Node, node Node) bool {
 	for i := range component {
-		if component[i].Index == node.Index { // not technically accurate but it validates these tests
+		if component[i].node.graphIndex == node.node.graphIndex { // not technically accurate but it validates these tests
 			return true
 		}
 	}
