@@ -37,7 +37,7 @@ func TestTopologicalSort(t *testing.T) {
 	wantOrder[6] = nodes[3] // belt
 	wantOrder[7] = nodes[1] // tie
 	wantOrder[8] = nodes[2] // jacket
-	result := TopologicalSort(graph)
+	result := graph.TopologicalSort()
 	for i := range result {
 		if result[i] != wantOrder[i] {
 			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i], wantOrder[i])
@@ -85,7 +85,7 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	want[2][0] = nodes[2]
 	want[2][1] = nodes[1]
 	want[3][0] = nodes[3]
-	components := StronglyConnectedComponents(graph)
+	components := graph.StronglyConnectedComponents()
 	for j := range components {
 		for i := range want[j] {
 			if !componentContains(components[j], want[j][i]) {

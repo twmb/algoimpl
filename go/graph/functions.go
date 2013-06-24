@@ -28,7 +28,7 @@ func (g *Graph) dfs(node *node, finishList *[]Node) {
 // Topologically sorts a directed acyclic graph.
 // If the graph is cyclic, the sort order will change
 // based on which node the sort starts on. O(V+E) complexity.
-func TopologicalSort(g *Graph) []Node {
+func (g *Graph) TopologicalSort() []Node {
 	sorted := make([]Node, 0, len(g.nodes))
 	// sort preorder (first jacket, then shirt)
 	for _, node := range g.nodes {
@@ -46,7 +46,7 @@ func TopologicalSort(g *Graph) []Node {
 
 // Returns reversed copy of the directed graph g. O(V+E) complexity.
 // This function can be used to copy an undirected graph.
-func Reverse(g *Graph) *Graph {
+func (g *Graph) Reverse() *Graph {
 	reversed := New(Directed)
 	if g.kind == Undirected {
 		reversed = New(Undirected)
@@ -75,17 +75,17 @@ func Reverse(g *Graph) *Graph {
 //     [[c->a, b], [b->a], [a->b]]
 // where -> represents the edges that the node contains.
 // O(V+E) complexity.
-func StronglyConnectedComponents(g *Graph) [][]Node {
+func (g *Graph) StronglyConnectedComponents() [][]Node {
 	if g.kind == Undirected {
 		return nil
 	}
 	components := make([][]Node, 0)
-	finishOrder := TopologicalSort(g)
+	finishOrder := g.TopologicalSort()
 	for i := range finishOrder {
 		finishOrder[i].node.state = unseen
 	}
 	// creates a reversed graph with empty parents
-	reversed := Reverse(g)
+	reversed := g.Reverse()
 	for _, sink := range finishOrder {
 		if reversed.nodes[sink.node.graphIndex].state == unseen {
 			component := make([]Node, 0)
@@ -119,7 +119,7 @@ func StronglyConnectedComponents(g *Graph) [][]Node {
 
 // This function will return the edges corresponding to the
 // minimum spanning tree in the graph based off of the edge's weight values.
-func MinimumSpanningTree(g *Graph) []Edge {
+func (g *Graph) MinimumSpanningTree() []Edge {
 	// create priority queue for vertices
 	nodesBase := nodeSlice(make([]*node, 0))
 	nodes := &nodesBase
