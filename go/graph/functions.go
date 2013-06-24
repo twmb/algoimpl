@@ -139,11 +139,11 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 			if min == edge.Start.node {
 				v = edge.End.node
 			}
-			if nodes.QueueContains(v) && *edge.Weight < (v.state & ^queued) {
+			if nodes.QueueContains(v) && edge.Weight < (v.state & ^queued) {
 				v.parent = min
-				heap.Remove(nodes, v.data)      // remove it
-				v.state = *edge.Weight | queued // update state, add queue bit
-				heap.Push(nodes, v)             // add it back in, WORD, O(lg n) update key time!
+				heap.Remove(nodes, v.data)     // remove it
+				v.state = edge.Weight | queued // update state, add queue bit
+				heap.Push(nodes, v)            // add it back in, WORD, O(lg n) update key time!
 			}
 		}
 	}

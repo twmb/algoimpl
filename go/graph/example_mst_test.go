@@ -34,7 +34,7 @@ func ExampleGraph_MinimumSpanningTree() {
 	mst := g.MinimumSpanningTree()
 	weightSum := 0
 	for i := range mst {
-		weightSum += *mst[i].Weight
+		weightSum += mst[i].Weight
 	}
 	fmt.Println(weightSum)
 	// Output: 37

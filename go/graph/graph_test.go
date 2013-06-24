@@ -99,7 +99,7 @@ func TestRemoveNode(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.Connect(nodes[i], nodes[j]) == nil {
+			if g.Connect(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
@@ -195,7 +195,7 @@ func TestUnconnect(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.Connect(nodes[i], nodes[j]) == nil {
+			if g.Connect(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
