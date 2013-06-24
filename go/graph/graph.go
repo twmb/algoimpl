@@ -80,7 +80,7 @@ type Edge struct {
 }
 
 // Prints in the following format:
-//     {5 2->3}"
+//     {5 2->3}
 // Where 5 is the weight and 2->3 is an edge.
 func (e Edge) String() string {
 	rVal := fmt.Sprintf("{%v", *e.Weight)
@@ -157,7 +157,7 @@ func (g *Graph) RemoveNode(remove *Node) {
 	remove.node = nil
 }
 
-// Creates and an edge and returns a pointer to a copy of the edge.
+// Creates an edge and returns a pointer to a copy of the edge.
 // The return value will be nil if either of the nodes do not belong
 // to the graph.
 //
