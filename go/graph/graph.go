@@ -191,7 +191,6 @@ func (g *Graph) Connect(from, to Node) *Edge {
 func (g *Graph) Unconnect(from, to Node) {
 	fromEdges := g.edges[from.node]
 	toEdges := g.edges[to.node]
-	fmt.Println(g)
 	for i, edge := range fromEdges {
 		if edge.Start == to && edge.End == from || edge.End == to && edge.Start == from {
 			fromEdges[i], fromEdges[len(fromEdges)-1] = fromEdges[len(fromEdges)-1], fromEdges[i]
