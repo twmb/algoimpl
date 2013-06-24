@@ -127,18 +127,16 @@ func (g *Graph) RemoveNode(remove *Node) {
 	for _, node := range g.nodes {
 		edges := g.edges[node]
 		// O(E)
-		swapIndex := 0 // index edge to remove is at: swap this with end
-		needSwap := false
+		swapIndex := -1 // index edge to remove is at: swap this with element at end of slice
 		for edgeI, edge := range edges {
 			if edge.Start == *remove || edge.End == *remove {
 				nodeExists = true
 				edge.Start.node = nil
 				edge.End.node = nil
 				swapIndex = edgeI
-				needSwap = true
 			}
 		}
-		if needSwap {
+		if swapIndex > -1 {
 			edges[swapIndex], edges[len(edges)-1] = edges[len(edges)-1], edges[swapIndex]
 			edges = edges[:len(edges)-1]
 		}
@@ -163,6 +161,7 @@ func (g *Graph) RemoveNode(remove *Node) {
 //
 // Calling connect multiple times on the same nodes will not
 // make multiple edges; the same edge will be returned on each call.
+// Runs in O(V) time because of the exist-check.
 func (g *Graph) Connect(from, to Node) *Edge {
 	if from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
 		return (*Edge)(nil)
@@ -186,4 +185,29 @@ func (g *Graph) Connect(from, to Node) *Edge {
 	}
 	copyEdge := newEdge
 	return &copyEdge
+}
+
+// Removes any edges between the nodes. Runs in O(E) time.
+func (g *Graph) Unconnect(from, to Node) {
+	fromEdges := g.edges[from.node]
+	toEdges := g.edges[to.node]
+	fmt.Println(g)
+	for i, edge := range fromEdges {
+		if edge.Start == to && edge.End == from || edge.End == to && edge.Start == from {
+			fromEdges[i], fromEdges[len(fromEdges)-1] = fromEdges[len(fromEdges)-1], fromEdges[i]
+			fromEdges = fromEdges[:len(fromEdges)-1]
+			g.edges[from.node] = fromEdges
+			break
+		}
+	}
+	if g.kind == Undirected {
+		for i, edge := range toEdges {
+			if edge.Start == from && edge.End == to || edge.End == from && edge.Start == to {
+				toEdges[i], toEdges[len(toEdges)-1] = toEdges[len(toEdges)-1], toEdges[i]
+				toEdges = toEdges[:len(toEdges)-1]
+				g.edges[to.node] = toEdges
+				break
+			}
+		}
+	}
 }
