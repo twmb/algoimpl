@@ -19,12 +19,15 @@ func (g *Graph) verify(t *testing.T) {
 		if node.graphIndex != i {
 			t.Errorf("node's graph index %v != actual graph index %v", node.graphIndex, i)
 		}
-		// over each adjacent node
+		// over each edge
 		for _, edge := range g.edges[node] {
+
 			// check that the graph contains it in the correct position
-			if edge.End.node.graphIndex >= len(g.nodes) ||
-				g.nodes[edge.End.node.graphIndex] != edge.End.node {
-				t.Errorf("adjacent node %v does not belong to the graph", edge.End)
+			if edge.End.node.graphIndex >= len(g.nodes) {
+				t.Errorf("adjacent node end graph index %v >= len(g.nodes)%v", edge.End.node.graphIndex, len(g.nodes))
+			}
+			if g.nodes[edge.End.node.graphIndex] != edge.End.node {
+				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.End.node, edge, g.nodes[edge.End.node.graphIndex])
 			}
 			// if the graph is undirected, check that the adjacent node contains the original node back
 			if g.kind == Undirected {
@@ -38,13 +41,13 @@ func (g *Graph) verify(t *testing.T) {
 
 func TestNew(t *testing.T) {
 	tests := []struct {
-		InKind    string
-		WantKind  int
+		InKind    GraphType
+		WantKind  GraphType
 		WantError string
 	}{
-		{"directed", 1, ""},
-		{"undirected", 0, ""},
-		{"", 0, "Unrecognized graph kind"},
+		{Directed, 1, ""},
+		{Undirected, 0, ""},
+		{3, 0, "Unrecognized graph kind"},
 	}
 
 	for _, test := range tests {
@@ -65,7 +68,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestMakeNode(t *testing.T) {
-	graph, err := New("undirected")
+	graph, err := New(Undirected)
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create undirected graph")
 	}
@@ -74,7 +77,7 @@ func TestMakeNode(t *testing.T) {
 		nodes[graph.MakeNode()] = i
 	}
 	graph.verify(t)
-	graph, err = New("directed")
+	graph, err = New(Directed)
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
@@ -85,8 +88,69 @@ func TestMakeNode(t *testing.T) {
 	graph.verify(t)
 }
 
+func TestRemoveNode(t *testing.T) {
+	g, _ := New(Undirected)
+	nodes := make([]Node, 2)
+	nodes[0] = g.MakeNode()
+	nodes[1] = g.MakeNode()
+	g.Connect(nodes[0], nodes[0])
+	g.Connect(nodes[1], nodes[0])
+	g.Connect(nodes[0], nodes[1])
+	g.Connect(nodes[1], nodes[1])
+	g.verify(t)
+	g.RemoveNode(&nodes[1])
+	g.verify(t)
+	g.RemoveNode(&nodes[1])
+	g.verify(t)
+	g.RemoveNode(&nodes[0])
+	g.verify(t)
+	nodes = make([]Node, 10)
+	for i := 0; i < 10; i++ {
+		nodes[i] = g.MakeNode()
+	}
+	// connect every node to every node
+	for j := 0; j < 10; j++ {
+		for i := 0; i < 10; i++ {
+			if g.Connect(nodes[i], nodes[j]) == nil {
+				t.Errorf("could not connect %v, %v", i, j)
+			}
+		}
+	}
+	g.verify(t)
+	t.Logf("removing node 0, pointer value %p", nodes[0].node)
+	g.RemoveNode(&nodes[0])
+	g.verify(t)
+	if nodes[0].node != nil {
+		t.Errorf("Node still has reference to node in graph")
+	}
+	g.RemoveNode(&nodes[9])
+	g.verify(t)
+	g.RemoveNode(&nodes[9])
+	g.verify(t)
+	g.RemoveNode(&nodes[0])
+	g.verify(t)
+	g.RemoveNode(&nodes[1])
+	g.verify(t)
+	g.RemoveNode(&nodes[2])
+	g.verify(t)
+	g.RemoveNode(&nodes[3])
+	g.verify(t)
+	g.RemoveNode(&nodes[4])
+	g.verify(t)
+	g.RemoveNode(&nodes[5])
+	g.verify(t)
+	g.RemoveNode(&nodes[6])
+	g.verify(t)
+	g.RemoveNode(&nodes[7])
+	g.verify(t)
+	g.RemoveNode(&nodes[8])
+	g.verify(t)
+	g.RemoveNode(&nodes[9])
+	g.verify(t)
+}
+
 func TestConnect(t *testing.T) {
-	graph, err := New("undirected")
+	graph, err := New(Undirected)
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create undirected graph")
 	}
@@ -105,7 +169,7 @@ func TestConnect(t *testing.T) {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
 	}
-	graph, err = New("directed")
+	graph, err = New(Directed)
 	if err != nil {
 		t.Errorf("TestMakeNode: unable to create directed graph")
 	}
