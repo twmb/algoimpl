@@ -20,15 +20,9 @@ func ExampleGraph_TopologicalSort() {
 	clothes["shoes"] = g.MakeNode()
 	clothes["socks"] = g.MakeNode()
 	// Make references back to the string values
-	*clothes["shirt"].Value = "shirt"
-	*clothes["tie"].Value = "tie"
-	*clothes["jacket"].Value = "jacket"
-	*clothes["belt"].Value = "belt"
-	*clothes["watch"].Value = "watch"
-	*clothes["undershorts"].Value = "undershorts"
-	*clothes["pants"].Value = "pants"
-	*clothes["shoes"].Value = "shoes"
-	*clothes["socks"].Value = "socks"
+	for key, node := range clothes {
+		*node.Value = key
+	}
 	// Connect the elements
 	g.Connect(clothes["shirt"], clothes["tie"])
 	g.Connect(clothes["tie"], clothes["jacket"])
