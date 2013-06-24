@@ -3,7 +3,6 @@
 package graph
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -63,6 +62,14 @@ type Node struct {
 	// the graph changes metadata, the Node type encapsulates
 	// a pointer to the actual node data.
 	node *node
+	// Value can be used to store information on the caller side.
+	// Its use is optional. See the Topological Sort example for
+	// a reason on why to use this pointer.
+	// The reason it is a pointer is so that graph function calls
+	// can test for equality on Nodes. The pointer wont change,
+	// the value it points to will. If the pointer is explicitly changed,
+	// graph functions that use Nodes will cease to work.
+	Value *interface{}
 }
 
 // An edge connects two Nodes in a graph. The weight can be modified and
@@ -92,22 +99,22 @@ func (e Edge) String() string {
 // Creates and returns an empty graph. This function must be called before nodes can be connected.
 // If kind is Directed, returns a directed graph.
 // If kind is Undirected, this function will return an undirected graph.
-// Otherwise, this will return nil and an error.
-func New(kind GraphType) (*Graph, error) {
+// If kind is anything else, this function will return an undirected graph by default.
+func New(kind GraphType) *Graph {
 	switch kind {
 	case Directed:
-		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge), kind: Directed}, nil
+		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge), kind: Directed}
 	case Undirected:
-		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge)}, nil
+		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge)}
 	default:
-		return nil, errors.New("Unrecognized graph kind")
+		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge)}
 	}
 }
 
 // Creates a node, adds it to the graph and returns the new node.
 func (g *Graph) MakeNode() Node {
 	newNode := &node{graphIndex: len(g.nodes)}
-	newNode.container = Node{node: newNode}
+	newNode.container = Node{node: newNode, Value: new(interface{})}
 	g.nodes = append(g.nodes, newNode)
 	return newNode.container
 }
