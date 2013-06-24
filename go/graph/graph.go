@@ -194,6 +194,23 @@ func (g *Graph) Connect(from, to Node) *Edge {
 	return &copyEdge
 }
 
+// This function calls Connect with the from and to nodes.
+// If Connect returns nil, this function will return nil.
+// Otherwise, this function sets the weight on an edge
+// and then returns a pointer to that edge.
+//
+// Calling ConnectWeight multiple times on the same nodes will not
+// make multiple edges; this function will just update
+// the weight on the node to a new value.
+func (g *Graph) ConnectWeight(from, to Node, weight int) *Edge {
+	edge := g.Connect(from, to)
+	if edge == nil {
+		return nil
+	}
+	*edge.Weight = weight
+	return edge
+}
+
 // Removes any edges between the nodes. Runs in O(E) time.
 func (g *Graph) Unconnect(from, to Node) {
 	fromEdges := g.edges[from.node]
