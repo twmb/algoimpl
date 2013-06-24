@@ -39,7 +39,7 @@ func ExampleTopologicalSort() {
 	g.Connect(clothes["pants"], clothes["belt"])
 	g.Connect(clothes["pants"], clothes["shoes"])
 	g.Connect(clothes["socks"], clothes["shoes"])
-	sorted := graph.TopologicalSort(g)
+	sorted := g.TopologicalSort()
 	for i := range sorted {
 		fmt.Println(*sorted[i].Value)
 	}
