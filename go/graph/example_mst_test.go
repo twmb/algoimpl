@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleMinimumSpanningTree() {
-	g, _ := graph.New("undirected")
+	g, _ := graph.New(graph.Undirected)
 	nodes := make(map[rune]graph.Node, 0)
 	nodes['a'] = g.MakeNode()
 	nodes['b'] = g.MakeNode()
@@ -32,20 +32,20 @@ func ExampleMinimumSpanningTree() {
 	edges = append(edges, *g.Connect(nodes['g'], nodes['h']))
 	edges = append(edges, *g.Connect(nodes['g'], nodes['i']))
 	edges = append(edges, *g.Connect(nodes['h'], nodes['i']))
-	*(edges[0].Weight) = 4
-	*(edges[1].Weight) = 8
-	*(edges[2].Weight) = 8
-	*(edges[3].Weight) = 11
-	*(edges[4].Weight) = 7
-	*(edges[5].Weight) = 4
-	*(edges[6].Weight) = 2
-	*(edges[7].Weight) = 9
-	*(edges[8].Weight) = 14
-	*(edges[9].Weight) = 10
-	*(edges[10].Weight) = 2
-	*(edges[11].Weight) = 1
-	*(edges[12].Weight) = 6
-	*(edges[13].Weight) = 7
+	*edges[0].Weight = 4
+	*edges[1].Weight = 8
+	*edges[2].Weight = 8
+	*edges[3].Weight = 11
+	*edges[4].Weight = 7
+	*edges[5].Weight = 4
+	*edges[6].Weight = 2
+	*edges[7].Weight = 9
+	*edges[8].Weight = 14
+	*edges[9].Weight = 10
+	*edges[10].Weight = 2
+	*edges[11].Weight = 1
+	*edges[12].Weight = 6
+	*edges[13].Weight = 7
 	mst := graph.MinimumSpanningTree(g)
 	weightSum := 0
 	for i := range mst {
