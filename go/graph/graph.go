@@ -162,23 +162,27 @@ func (g *Graph) RemoveNode(remove *Node) {
 	remove.node = nil
 }
 
-// Creates an edge in the graph. This function will return an error
-// if either of the nodes do not belong in the graph.
-//
+// This function calls ConnectWeight with a weight of 0
+// and returns an error if either of the nodes do not
+// belong in the graph.
 // Calling connect multiple times on the same nodes will not
-// make multiple edges. Because of this existence check, connecting nodes runs in O(N) time.
+// make multiple edges.
+//
+// Runs in O(E) time, where E is the number of edges coming out
+// of the from node (and to node if the graph is undirected).
 func (g *Graph) Connect(from, to Node) error {
 	return g.ConnectWeight(from, to, 0)
 }
 
-// This function calls Connect with the from and to nodes.
-// If Connect returns nil, this function will return nil.
-// Otherwise, this function sets the weight on an edge
-// and then returns a pointer to that edge.
-//
+// Creates an edge in the graph with a corresponding weight.
+// This function will return an error if either of the nodes
+// do not belong in the graph.
 // Calling ConnectWeight multiple times on the same nodes will not
 // make multiple edges; this function will just update
 // the weight on the node to a new value.
+//
+// Runs in O(E) time, where E is the number of edges coming out
+// of the from node (and to node if the graph is undirected).
 func (g *Graph) ConnectWeight(from, to Node, weight int) error {
 	if from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
 		return errors.New("First node in Connect call does not belong to this graph")
