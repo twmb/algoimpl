@@ -105,6 +105,7 @@ func TestRemoveNode(t *testing.T) {
 	g.RemoveNode(&nodes[0])
 	g.verify(t)
 	nodes = make([]Node, 10)
+	g, _ = New(Directed)
 	for i := 0; i < 10; i++ {
 		nodes[i] = g.MakeNode()
 	}
@@ -117,7 +118,6 @@ func TestRemoveNode(t *testing.T) {
 		}
 	}
 	g.verify(t)
-	t.Logf("removing node 0, pointer value %p", nodes[0].node)
 	g.RemoveNode(&nodes[0])
 	g.verify(t)
 	if nodes[0].node != nil {
@@ -188,4 +188,62 @@ func TestConnect(t *testing.T) {
 			t.Errorf("Node at index %v = %v, != %v, wrong!", i, mapped[i], node)
 		}
 	}
+}
+
+func TestUnconnect(t *testing.T) {
+	g, _ := New(Undirected)
+	nodes := make([]Node, 2)
+	nodes[0] = g.MakeNode()
+	nodes[1] = g.MakeNode()
+	g.Connect(nodes[0], nodes[0])
+	g.Connect(nodes[1], nodes[0])
+	g.Connect(nodes[0], nodes[1])
+	g.Connect(nodes[1], nodes[1])
+	g.verify(t)
+	g.Unconnect(nodes[0], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[0], nodes[1])
+	g.verify(t)
+	g.Unconnect(nodes[1], nodes[1])
+	g.verify(t)
+	nodes = make([]Node, 10)
+	g, _ = New(Directed)
+	for i := 0; i < 10; i++ {
+		nodes[i] = g.MakeNode()
+	}
+	// connect every node to every node
+	for j := 0; j < 10; j++ {
+		for i := 0; i < 10; i++ {
+			if g.Connect(nodes[i], nodes[j]) == nil {
+				t.Errorf("could not connect %v, %v", i, j)
+			}
+		}
+	}
+	g.verify(t)
+	g.Unconnect(nodes[5], nodes[4])
+	g.verify(t)
+	g.Unconnect(nodes[9], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[9], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[0], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[1], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[2], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[3], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[4], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[5], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[6], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[7], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[8], nodes[0])
+	g.verify(t)
+	g.Unconnect(nodes[9], nodes[0])
+	g.verify(t)
 }
