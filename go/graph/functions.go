@@ -29,7 +29,6 @@ func (g *Graph) dfs(node *node, finishList *[]Node) {
 // If the graph is cyclic, the sort order will change
 // based on which node the sort starts on. O(V+E) complexity.
 func TopologicalSort(g *Graph) []Node {
-	g.lazyInit()
 	sorted := make([]Node, 0, len(g.nodes))
 	// sort preorder (first jacket, then shirt)
 	for _, node := range g.nodes {
@@ -48,9 +47,9 @@ func TopologicalSort(g *Graph) []Node {
 // Returns reversed copy of the directed graph g. O(V+E) complexity.
 // This function can be used to copy an undirected graph.
 func Reverse(g *Graph) *Graph {
-	reversed, _ := New("directed")
+	reversed := New(Directed)
 	if g.kind == Undirected {
-		reversed, _ = New("undirected")
+		reversed = New(Undirected)
 	}
 	// O(V)
 	for _ = range g.nodes {
@@ -80,7 +79,6 @@ func StronglyConnectedComponents(g *Graph) [][]Node {
 	if g.kind == Undirected {
 		return nil
 	}
-	g.lazyInit()
 	components := make([][]Node, 0)
 	finishOrder := TopologicalSort(g)
 	for i := range finishOrder {

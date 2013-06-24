@@ -5,10 +5,7 @@ import (
 )
 
 func TestTopologicalSort(t *testing.T) {
-	graph, err := New("directed")
-	if err != nil {
-		t.Errorf("TestMakeNode: unable to create directed graph")
-	}
+	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create graph on page 613 of CLRS ed. 3
 	nodes = append(nodes, graph.MakeNode()) // shirt
@@ -49,10 +46,7 @@ func TestTopologicalSort(t *testing.T) {
 }
 
 func TestStronglyConnectedComponents(t *testing.T) {
-	graph, err := New("directed")
-	if err != nil {
-		t.Errorf("TestStronglyConnectedComponents: unable to create directed graph")
-	}
+	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
 	nodes = append(nodes, graph.MakeNode()) //0, c
