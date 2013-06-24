@@ -5,7 +5,7 @@ import (
 	"github.com/twmb/algoimpl/go/graph"
 )
 
-func ExampleTopologicalSort() {
+func ExampleGraph_TopologicalSort() {
 	g := graph.New(graph.Directed)
 
 	clothes := make(map[string]graph.Node, 0)

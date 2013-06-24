@@ -5,7 +5,7 @@ import (
 	"github.com/twmb/algoimpl/go/graph"
 )
 
-func ExampleMinimumSpanningTree() {
+func ExampleGraph_MinimumSpanningTree() {
 	g := graph.New(graph.Undirected)
 	nodes := make(map[rune]graph.Node, 0)
 	nodes['a'] = g.MakeNode()
