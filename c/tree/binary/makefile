@@ -1,6 +1,6 @@
 TESTS=binary_tree
 CC=gcc
-CFLAGS=-Wall -pedantic -std=c11 -o3
+CFLAGS=-Wall -g -pedantic -std=c11 -o3
 
 all: $(TESTS)
 
