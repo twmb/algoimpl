@@ -210,10 +210,10 @@ func (b *BinaryTree) Delete(value Comparable) *Comparable {
 		b.transplant(node, node.left)
 	} else {
 		replacement := minimum(node.right)
-		// testing if replacement.parent == node only saves a few steps
-		// at the expense of making the delete more confusing
-		b.transplant(replacement, replacement.right) // sever ties
-		replacement.right = node.right
+		if replacement.parent != node {
+			b.transplant(replacement, replacement.right) // sever ties
+			replacement.right = node.right
+		}
 		replacement.right.parent = replacement
 		replacement.left = node.left
 		replacement.left.parent = replacement
