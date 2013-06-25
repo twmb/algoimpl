@@ -12,8 +12,9 @@ typedef struct {
 } linked_list;
 
 linked_list new_linked_list();
-void push_front_ll(linked_list *list, void *data);
-void *remove_front_ll(linked_list *list);
+void delete_ll(linked_list *list);
+void push_ll(linked_list *list, void *data);
+void *pop_ll(linked_list *list);
 void *remove_element_ll(linked_list *list, void *data);
 
 #endif

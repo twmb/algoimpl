@@ -8,8 +8,16 @@ linked_list new_linked_list() {
   return l;
 }
 
+void delete_ll(linked_list *list) {
+  while(list->head != NULL) {
+    pop_ll(list);
+  }
+}
+
+
+
 // Adds a new item to the linked list
-void push_front_ll(linked_list *list, void *data) {
+void push_ll(linked_list *list, void *data) {
   item *new_item = (item *)malloc(sizeof(item));
   if (!new_item) {
     return;
@@ -20,7 +28,7 @@ void push_front_ll(linked_list *list, void *data) {
 }
 
 // Removes and returns pointer to the data at the front of the list
-void *remove_front_ll(linked_list *list) {
+void *pop_ll(linked_list *list) {
   if (list->head == NULL) {
     return NULL;
   }
