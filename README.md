@@ -11,5 +11,7 @@ Algorithms currently un-implemented from old, deleted repo:
 - Kargers  
 - Select
 
-[CC0](https://creativecommons.org/publicdomain/zero/1.0/)
+[CC0](https://creativecommons.org/publicdomain/zero/1.0/) except
+where otherwise noted (sort.go, heap.go both are basically identical
+to the Go author counterparts because I referenced theirs for comparison).
 
