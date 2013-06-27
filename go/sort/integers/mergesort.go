@@ -3,7 +3,7 @@
 // This also allows for using goroutines.
 package integers
 
-func mergeCombineInts(lch, rch <-chan int, tch chan<- int) {
+func mergeCombine(lch, rch <-chan int, tch chan<- int) {
 	lv, lopen := <-lch
 	rv, ropen := <-rch
 	for lopen && ropen {
@@ -28,12 +28,12 @@ func mergeCombineInts(lch, rch <-chan int, tch chan<- int) {
 
 // This function takes a slice to be sorted, a range to sort
 // and a channel to send in-order ints to.
-func MergeSortInts(me []int, from, to int, tch chan<- int) {
+func MergeSort(me []int, from, to int, tch chan<- int) {
 	if from < to-1 {
 		lch, rch := make(chan int), make(chan int)
-		go MergeSortInts(me, from, (from+to)/2, lch)
-		go MergeSortInts(me, (from+to)/2, to, rch)
-		mergeCombineInts(lch, rch, tch)
+		go MergeSort(me, from, (from+to)/2, lch)
+		go MergeSort(me, (from+to)/2, to, rch)
+		mergeCombine(lch, rch, tch)
 	} else {
 		for i := from; i < to; i++ {
 			tch <- me[i]

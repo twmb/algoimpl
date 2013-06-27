@@ -2,7 +2,7 @@ package integers
 
 import "testing"
 
-func TestMergeSortInts(t *testing.T) {
+func TestMergeSort(t *testing.T) {
 	tests := []struct {
 		In, Want []int
 	}{
@@ -14,7 +14,7 @@ func TestMergeSortInts(t *testing.T) {
 	for _, test := range tests {
 		tch := make(chan int)
 		got := make([]int, 0, len(test.In))
-		go MergeSortInts(test.In, 0, len(test.In), tch)
+		go MergeSort(test.In, 0, len(test.In), tch)
 		for v := range tch {
 			got = append(got, v)
 		}
