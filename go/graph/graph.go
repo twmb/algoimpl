@@ -228,3 +228,17 @@ func (g *Graph) Unconnect(from, to Node) {
 		}
 	}
 }
+
+// Returns a slice of nodes that are reachable from the given node in a graph.
+func (g *Graph) Neighbors(n Node) []Node {
+	neighbors := make([]Node, 0, len(g.edges[n.node]))
+	for _, edge := range g.edges[n.node] {
+		// if Undirected, either start or end could be the node we are looking for neighbors of
+		if edge.Start == n {
+			neighbors = append(neighbors, edge.End)
+		} else {
+			neighbors = append(neighbors, edge.Start)
+		}
+	}
+	return neighbors
+}

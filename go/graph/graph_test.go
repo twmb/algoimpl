@@ -13,6 +13,15 @@ func (g *Graph) edgeBack(from, to *node) bool {
 	return false
 }
 
+func nodeSliceContains(slice []Node, node Node) bool {
+	for i := range slice {
+		if slice[i].node == node.node { // used for exact node checking as opposed to functions_test componentContains
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Graph) verify(t *testing.T) {
 	// over all the nodes
 	for i, node := range g.nodes {
@@ -227,4 +236,37 @@ func TestUnconnect(t *testing.T) {
 	g.verify(t)
 	g.Unconnect(nodes[9], nodes[0])
 	g.verify(t)
+}
+
+func TestNeighbors(t *testing.T) {
+	g := New(Undirected)
+	nodes := make([]Node, 2)
+	nodes[0] = g.MakeNode()
+	nodes[1] = g.MakeNode()
+	g.Connect(nodes[1], nodes[0])
+	g.verify(t)
+	neighbors := g.Neighbors(nodes[0])
+	if !nodeSliceContains(neighbors, nodes[1]) {
+		t.Errorf("nodes 1 not a neighbor of 0, even though connected in undirected graph")
+	}
+	oldGraphNode := nodes[0]
+	nodes = make([]Node, 3)
+	g = New(Directed)
+	nodes[0] = g.MakeNode()
+	nodes[1] = g.MakeNode()
+	nodes[2] = g.MakeNode()
+	g.Connect(nodes[1], nodes[0])
+	g.Connect(nodes[2], nodes[1]) // 2->1->0
+	g.verify(t)
+	neighbors = g.Neighbors(nodes[1])
+	if nodeSliceContains(neighbors, nodes[2]) {
+		t.Errorf("nodes 2 is a neighbor of 0, even though not 1 not connected to 2 in undirected graph")
+	}
+	if !nodeSliceContains(neighbors, nodes[0]) {
+		t.Errorf("nodes 0 not a neighbor of 0, even though 1 connects to 0 in directed graph")
+	}
+	neighbors = g.Neighbors(oldGraphNode)
+	if len(neighbors) > 0 {
+		t.Errorf("old graph node has neighbors in new graph: %v", neighbors)
+	}
 }
