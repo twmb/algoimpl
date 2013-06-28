@@ -97,7 +97,7 @@ func TestStronglyConnectedComponents(t *testing.T) {
 
 func componentContains(component []Node, node Node) bool {
 	for i := range component {
-		if component[i].node.graphIndex == node.node.graphIndex { // not technically accurate but it validates these tests
+		if component[i].node.graphIndex == node.node.graphIndex { // for SCC, the nodes will be reversed but the indices will be the same
 			return true
 		}
 	}
