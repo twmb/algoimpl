@@ -163,11 +163,16 @@ func (g *Graph) RemoveNode(remove *Node) {
 // This function calls ConnectWeight with a weight of 0
 // and returns an error if either of the nodes do not
 // belong in the graph.
-// Calling connect multiple times on the same nodes will not
+// Calling Connect multiple times on the same nodes will not
 // make multiple edges.
 //
 // Runs in O(E) time, where E is the number of edges coming out
 // of the from node (and to node if the graph is undirected).
+// If the graph is sparse, which it should be if you are using
+// an adjacency list graph structure like this package provides,
+// then connecting two nodes will be near O(1) time. For the exact
+// specifics on the performance of this function, click on it and
+// read the function.
 func (g *Graph) Connect(from, to Node) error {
 	return g.ConnectWeight(from, to, 0)
 }
@@ -181,6 +186,11 @@ func (g *Graph) Connect(from, to Node) error {
 //
 // Runs in O(E) time, where E is the number of edges coming out
 // of the from node (and to node if the graph is undirected).
+// If the graph is sparse, which it should be if you are using
+// an adjacency list graph structure like this package provides,
+// then connecting two nodes will be near O(1) time. For the exact
+// specifics on the performance of this function, click on it and
+// read the function.
 func (g *Graph) ConnectWeight(from, to Node, weight int) error {
 	if from.node == nil || from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
 		return errors.New("First node in Connect call does not belong to this graph")
