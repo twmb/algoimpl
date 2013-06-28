@@ -1,4 +1,4 @@
-TESTS=max_subarray
+TESTS=max_subarray reverse_words
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c11
 
