@@ -10,11 +10,11 @@ linked_list new_linked_list() {
 
 void delete_ll(linked_list *list) {
   while(list->head != NULL) {
-    pop_ll(list);
+    item *next = list->head->next;
+    free(list->head);
+    list->head = next;
   }
 }
-
-
 
 // Adds a new item to the linked list
 void push_ll(linked_list *list, void *data) {
