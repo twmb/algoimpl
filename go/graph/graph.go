@@ -182,10 +182,10 @@ func (g *Graph) Connect(from, to Node) error {
 // Runs in O(E) time, where E is the number of edges coming out
 // of the from node (and to node if the graph is undirected).
 func (g *Graph) ConnectWeight(from, to Node, weight int) error {
-	if from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
+	if from.node == nil || from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
 		return errors.New("First node in Connect call does not belong to this graph")
 	}
-	if to.node.graphIndex >= len(g.nodes) || g.nodes[to.node.graphIndex] != to.node {
+	if to.node == nil || to.node.graphIndex >= len(g.nodes) || g.nodes[to.node.graphIndex] != to.node {
 		return errors.New("Second node in Connect call does not belong to this graph")
 	}
 	for edgeI, edge := range g.edges[from.node] { // check if edge already exists

@@ -162,6 +162,11 @@ func TestConnect(t *testing.T) {
 			t.Errorf("Node at index %v != %v, wrong!", i, i)
 		}
 	}
+	var nonGraphNode Node
+	err := graph.Connect(nonGraphNode, mapped[0])
+	if err == nil {
+		t.Errorf("err was nil when expecting error for connecting non graph node to graph")
+	}
 	graph = New(Directed)
 	mapped = make(map[int]Node, 0)
 	for i := 0; i < 10; i++ {
