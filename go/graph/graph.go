@@ -78,9 +78,7 @@ type Node struct {
 // not be seen in the graph.
 //
 // In an undirected graph, the start of an edge and end of an edge
-// is represented once in the graph: if you connect A to B
-// and use the Remove function to remove B, the returned edge will
-// have a Start of A and an End of B.
+// is represented once in the graph.
 type Edge struct {
 	Weight int
 	Start  Node
@@ -178,7 +176,7 @@ func (g *Graph) Connect(from, to Node) error {
 // This function will return an error if either of the nodes
 // do not belong in the graph.
 // Calling ConnectWeight multiple times on the same nodes will not
-// make multiple edges; this function will just update
+// make multiple edges; this function will update
 // the weight on the node to a new value.
 //
 // Runs in O(E) time, where E is the number of edges coming out
