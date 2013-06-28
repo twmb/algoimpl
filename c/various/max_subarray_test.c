@@ -44,11 +44,11 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (!failed) {
-    printf("all iterative subarray tests good\n");
+  if (failed) {
+    printf("max_subarray failed iterative tests\n");
   }
 
-  failed = 0;
+  int failed2 = 0;
 
   for (int i = 0; i < test_count; i++) {
     max_info info = max_subarray_recursive(tests[i].In, tests[i].InStart, tests[i].InEnd);
@@ -58,12 +58,16 @@ int main(int argc, char **argv) {
       printf("failure on %d, ret info: (%d, %d, %d), expected: (%d, %d, %d)\n",
           i, info.l, info.r, info.sum, 
           tests[i].WantLI, tests[i].WantRI, tests[i].WantSum);
-      failed = 1; // true
+      failed2 = 1; // true
     }
   }
 
-  if (!failed) {
-    printf("all recursive subarray tests good\n");
+  if (failed2) {
+    printf("max subarray failed recursive tests\n");
   } 
+  if (failed || failed2) {
+    return -1;
+  }
+  return 0;
 }
 
