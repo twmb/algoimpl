@@ -154,6 +154,7 @@ func (g *Graph) RemoveNode(remove *Node) {
 		copy(g.nodes[remove.node.graphIndex:], g.nodes[remove.node.graphIndex+1:])
 	}
 	if nodeExists {
+		g.nodes[len(g.nodes)-1] = nil // garbage collect
 		g.nodes = g.nodes[:len(g.nodes)-1]
 	}
 	remove.node.parent = nil
@@ -220,17 +221,21 @@ func (g *Graph) Unconnect(from, to Node) {
 	fromEdges := g.edges[from.node]
 	toEdges := g.edges[to.node]
 	for i, edge := range fromEdges {
-		if edge.Start == to && edge.End == from || edge.End == to && edge.Start == from {
+		if edge.Start == to && edge.End == from || edge.End == to {
 			fromEdges[i], fromEdges[len(fromEdges)-1] = fromEdges[len(fromEdges)-1], fromEdges[i]
+			fromEdges[len(fromEdges)-1].Start.node = nil // for garbage collection
+			fromEdges[len(fromEdges)-1].End.node = nil
 			fromEdges = fromEdges[:len(fromEdges)-1]
 			g.edges[from.node] = fromEdges
 			break
 		}
 	}
-	if g.kind == Undirected {
+	if g.kind == Undirected && from != to {
 		for i, edge := range toEdges {
-			if edge.Start == from && edge.End == to || edge.End == from && edge.Start == to {
+			if edge.Start == from && edge.End == to || edge.End == from {
 				toEdges[i], toEdges[len(toEdges)-1] = toEdges[len(toEdges)-1], toEdges[i]
+				toEdges[len(toEdges)-1].Start.node = nil // for garbage collection
+				toEdges[len(toEdges)-1].End.node = nil
 				toEdges = toEdges[:len(toEdges)-1]
 				g.edges[to.node] = toEdges
 				break
