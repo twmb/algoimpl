@@ -1,4 +1,4 @@
-package various
+package dynamic
 
 type MoneyRod struct {
 	CutPositions []int

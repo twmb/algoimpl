@@ -1,7 +1,7 @@
-package various_test
+package dynamic_test
 
 import (
-	"github.com/twmb/algoimpl/go/various"
+	"github.com/twmb/algoimpl/go/various/dynamic"
 	"testing"
 )
 
@@ -30,9 +30,9 @@ func TestCutRod(t *testing.T) {
 	idealProfits[9] = 25
 	idealProfits[10] = 30
 
-	various.InitPrices(prices)
+	dynamic.InitPrices(prices)
 	for i := len(prices) - 1; i >= 0; i-- {
-		got := various.CutRod(i)
+		got := dynamic.CutRod(i)
 		if got.Profit != idealProfits[i] {
 			t.Errorf("Expected profit %v, got profit %v with positions %v", idealProfits[i], got.Profit, got.CutPositions)
 		}
