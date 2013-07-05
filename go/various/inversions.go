@@ -36,9 +36,12 @@ func inversionsCount(array, buffer []int) int {
 // Inversions will return the number of inversions in a given input integer array.
 // An inversion is when a smaller number appears after a larger number.
 // For example, [1,3,5,2,4,6] has three inversions: [3,2], [5,2] and [5,4].
+// Runs in O(n lg n) time, where n is the size of the input.
 func Inversions(array []int) int {
-	buffer := make([]int, len(array))
-	copy(buffer, array[:])
-	count := inversionsCount(array, buffer)
+	buffer0 := make([]int, len(array))
+	buffer1 := make([]int, len(array))
+	copy(buffer0, array[:])
+	copy(buffer1, array[:])
+	count := inversionsCount(buffer0, buffer1)
 	return count
 }
