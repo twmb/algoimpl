@@ -1,6 +1,6 @@
 package various
 
-func inversionsCombine(left, right, array, combined []int) int {
+func inversionsCombine(left, right, combined []int) int {
 	inversions := 0
 	k, li, ri := 0, 0, 0 // index in combined array
 	for ; li < len(left) && ri < len(right); k++ {
@@ -19,7 +19,6 @@ func inversionsCombine(left, right, array, combined []int) int {
 	for ; ri < len(right); ri, k = ri+1, k+1 {
 		combined[k] = right[ri]
 	}
-	copy(array, combined[:])
 	return inversions
 }
 
@@ -30,7 +29,7 @@ func inversionsCount(array, sorted []int) int {
 	}
 	cleft := inversionsCount(array[:len(array)/2], sorted[:len(array)/2])
 	cright := inversionsCount(array[len(array)/2:], sorted[len(array)/2:])
-	ccross := inversionsCombine(array[:len(array)/2], array[len(array)/2:], array, sorted)
+	ccross := inversionsCombine(array[:len(array)/2], array[len(array)/2:], sorted)
 	return cleft + ccross + cright
 }
 
