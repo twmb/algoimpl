@@ -22,3 +22,15 @@ func TestInversions(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkInversions(b *testing.B) {
+	b.StopTimer()
+	inverse := make([]int, 1<<10)
+	for i := 0; i < 1<<10; i++ {
+		inverse[i] = 1<<10 - i
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		various.Inversions(inverse)
+	}
+}
