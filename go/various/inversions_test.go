@@ -23,11 +23,35 @@ func TestInversions(t *testing.T) {
 	}
 }
 
-func BenchmarkInversions(b *testing.B) {
+func BenchmarkInversions5(b *testing.B) {
+	b.StopTimer()
+	inverse := make([]int, 1<<5)
+	for i := 0; i < 1<<5; i++ {
+		inverse[i] = 1<<5 - i
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		various.Inversions(inverse)
+	}
+}
+
+func BenchmarkInversions10(b *testing.B) {
 	b.StopTimer()
 	inverse := make([]int, 1<<10)
 	for i := 0; i < 1<<10; i++ {
 		inverse[i] = 1<<10 - i
+	}
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		various.Inversions(inverse)
+	}
+}
+
+func BenchmarkInversions20(b *testing.B) {
+	b.StopTimer()
+	inverse := make([]int, 1<<20)
+	for i := 0; i < 1<<20; i++ {
+		inverse[i] = 1<<20 - i
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
