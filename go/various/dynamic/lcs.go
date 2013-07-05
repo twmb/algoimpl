@@ -1,5 +1,7 @@
 package dynamic
 
+// Returns the longest common subsequence of two strings in O(mn) time
+// and space complexity, where m and n are the lengths of the strings.
 func LongestCommonSubsequence(first, second string) string {
 
 	firstRunes := []rune(first)
