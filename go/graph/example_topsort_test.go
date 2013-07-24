@@ -24,15 +24,15 @@ func ExampleGraph_TopologicalSort() {
 		*node.Value = key
 	}
 	// Connect the elements
-	g.Connect(clothes["shirt"], clothes["tie"])
-	g.Connect(clothes["tie"], clothes["jacket"])
-	g.Connect(clothes["shirt"], clothes["belt"])
-	g.Connect(clothes["belt"], clothes["jacket"])
-	g.Connect(clothes["undershorts"], clothes["pants"])
-	g.Connect(clothes["undershorts"], clothes["shoes"])
-	g.Connect(clothes["pants"], clothes["belt"])
-	g.Connect(clothes["pants"], clothes["shoes"])
-	g.Connect(clothes["socks"], clothes["shoes"])
+	g.CreateEdge(clothes["shirt"], clothes["tie"])
+	g.CreateEdge(clothes["tie"], clothes["jacket"])
+	g.CreateEdge(clothes["shirt"], clothes["belt"])
+	g.CreateEdge(clothes["belt"], clothes["jacket"])
+	g.CreateEdge(clothes["undershorts"], clothes["pants"])
+	g.CreateEdge(clothes["undershorts"], clothes["shoes"])
+	g.CreateEdge(clothes["pants"], clothes["belt"])
+	g.CreateEdge(clothes["pants"], clothes["shoes"])
+	g.CreateEdge(clothes["socks"], clothes["shoes"])
 	sorted := g.TopologicalSort()
 	for i := range sorted {
 		fmt.Println(*sorted[i].Value)

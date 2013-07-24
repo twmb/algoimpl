@@ -17,15 +17,15 @@ func TestTopologicalSort(t *testing.T) {
 	nodes = append(nodes, graph.MakeNode()) // pants
 	nodes = append(nodes, graph.MakeNode()) // shoes
 	nodes = append(nodes, graph.MakeNode()) // socks
-	graph.Connect(nodes[0], nodes[1])
-	graph.Connect(nodes[1], nodes[2])
-	graph.Connect(nodes[0], nodes[3])
-	graph.Connect(nodes[3], nodes[2])
-	graph.Connect(nodes[5], nodes[6])
-	graph.Connect(nodes[5], nodes[7])
-	graph.Connect(nodes[6], nodes[3])
-	graph.Connect(nodes[6], nodes[7])
-	graph.Connect(nodes[8], nodes[7])
+	graph.CreateEdge(nodes[0], nodes[1])
+	graph.CreateEdge(nodes[1], nodes[2])
+	graph.CreateEdge(nodes[0], nodes[3])
+	graph.CreateEdge(nodes[3], nodes[2])
+	graph.CreateEdge(nodes[5], nodes[6])
+	graph.CreateEdge(nodes[5], nodes[7])
+	graph.CreateEdge(nodes[6], nodes[3])
+	graph.CreateEdge(nodes[6], nodes[7])
+	graph.CreateEdge(nodes[8], nodes[7])
 	graph.verify(t)
 	wantOrder := make([]Node, len(graph.nodes))
 	wantOrder[0] = nodes[8] // socks
@@ -57,20 +57,20 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	nodes = append(nodes, graph.MakeNode()) //5, b
 	nodes = append(nodes, graph.MakeNode()) //6, e
 	nodes = append(nodes, graph.MakeNode()) //7, a
-	graph.Connect(nodes[0], nodes[1])
-	graph.Connect(nodes[0], nodes[4])
-	graph.Connect(nodes[1], nodes[2])
-	graph.Connect(nodes[1], nodes[3])
-	graph.Connect(nodes[2], nodes[1])
-	graph.Connect(nodes[3], nodes[3])
-	graph.Connect(nodes[4], nodes[3])
-	graph.Connect(nodes[4], nodes[0])
-	graph.Connect(nodes[5], nodes[6])
-	graph.Connect(nodes[5], nodes[0])
-	graph.Connect(nodes[5], nodes[2])
-	graph.Connect(nodes[6], nodes[2])
-	graph.Connect(nodes[6], nodes[7])
-	graph.Connect(nodes[7], nodes[5])
+	graph.CreateEdge(nodes[0], nodes[1])
+	graph.CreateEdge(nodes[0], nodes[4])
+	graph.CreateEdge(nodes[1], nodes[2])
+	graph.CreateEdge(nodes[1], nodes[3])
+	graph.CreateEdge(nodes[2], nodes[1])
+	graph.CreateEdge(nodes[3], nodes[3])
+	graph.CreateEdge(nodes[4], nodes[3])
+	graph.CreateEdge(nodes[4], nodes[0])
+	graph.CreateEdge(nodes[5], nodes[6])
+	graph.CreateEdge(nodes[5], nodes[0])
+	graph.CreateEdge(nodes[5], nodes[2])
+	graph.CreateEdge(nodes[6], nodes[2])
+	graph.CreateEdge(nodes[6], nodes[7])
+	graph.CreateEdge(nodes[7], nodes[5])
 	graph.verify(t)
 	want := make([][]Node, 4)
 	want[0] = make([]Node, 3)
@@ -97,7 +97,7 @@ func TestStronglyConnectedComponents(t *testing.T) {
 
 func componentContains(component []Node, node Node) bool {
 	for i := range component {
-		if component[i].node.graphIndex == node.node.graphIndex { // for SCC, the nodes will be reversed but the indices will be the same
+		if component[i].node.index == node.node.index { // for SCC, the nodes will be reversed but the indices will be the same
 			return true
 		}
 	}

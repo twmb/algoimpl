@@ -5,8 +5,8 @@ import (
 )
 
 func (g *Graph) edgeBack(from, to *node) bool {
-	for _, v := range g.edges[from] {
-		if v.End.node == to || v.Start.node == to && v.End.node == from {
+	for _, v := range from.edges {
+		if v.end == to {
 			return true
 		}
 	}
@@ -25,23 +25,23 @@ func nodeSliceContains(slice []Node, node Node) bool {
 func (g *Graph) verify(t *testing.T) {
 	// over all the nodes
 	for i, node := range g.nodes {
-		if node.graphIndex != i {
-			t.Errorf("node's graph index %v != actual graph index %v", node.graphIndex, i)
+		if node.index != i {
+			t.Errorf("node's graph index %v != actual graph index %v", node.index, i)
 		}
 		// over each edge
-		for _, edge := range g.edges[node] {
+		for _, edge := range node.edges {
 
 			// check that the graph contains it in the correct position
-			if edge.End.node.graphIndex >= len(g.nodes) {
-				t.Errorf("adjacent node end graph index %v >= len(g.nodes)%v", edge.End.node.graphIndex, len(g.nodes))
+			if edge.end.index >= len(g.nodes) {
+				t.Errorf("adjacent node end graph index %v >= len(g.nodes)%v", edge.end.index, len(g.nodes))
 			}
-			if g.nodes[edge.End.node.graphIndex] != edge.End.node {
-				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.End.node, edge, g.nodes[edge.End.node.graphIndex])
+			if g.nodes[edge.end.index] != edge.end {
+				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.end, edge, g.nodes[edge.end.index])
 			}
 			// if the graph is undirected, check that the adjacent node contains the original node back
 			if g.kind == Undirected {
-				if !g.edgeBack(edge.End.node, node) {
-					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node, edge.End)
+				if !g.edgeBack(edge.end, node) {
+					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node, edge.end)
 				}
 			}
 		}
@@ -89,10 +89,10 @@ func TestRemoveNode(t *testing.T) {
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.Connect(nodes[0], nodes[0])
-	g.Connect(nodes[1], nodes[0])
-	g.Connect(nodes[0], nodes[1])
-	g.Connect(nodes[1], nodes[1])
+	g.CreateEdge(nodes[0], nodes[0])
+	g.CreateEdge(nodes[1], nodes[0])
+	g.CreateEdge(nodes[0], nodes[1])
+	g.CreateEdge(nodes[1], nodes[1])
 	g.verify(t)
 	g.RemoveNode(&nodes[1])
 	g.verify(t)
@@ -108,7 +108,7 @@ func TestRemoveNode(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.Connect(nodes[i], nodes[j]) != nil {
+			if g.CreateEdge(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
@@ -145,7 +145,7 @@ func TestRemoveNode(t *testing.T) {
 	g.verify(t)
 }
 
-func TestConnect(t *testing.T) {
+func TestCreateEdge(t *testing.T) {
 	graph := New(Undirected)
 	mapped := make(map[int]Node, 0)
 	for i := 0; i < 10; i++ {
@@ -153,7 +153,7 @@ func TestConnect(t *testing.T) {
 	}
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
-			graph.Connect(mapped[i], mapped[(i+1+j)%10])
+			graph.CreateEdge(mapped[i], mapped[(i+1+j)%10])
 		}
 	}
 	graph.verify(t)
@@ -163,7 +163,7 @@ func TestConnect(t *testing.T) {
 		}
 	}
 	var nonGraphNode Node
-	err := graph.Connect(nonGraphNode, mapped[0])
+	err := graph.CreateEdge(nonGraphNode, mapped[0])
 	if err == nil {
 		t.Errorf("err was nil when expecting error for connecting non graph node to graph")
 	}
@@ -174,7 +174,7 @@ func TestConnect(t *testing.T) {
 	}
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
-			graph.Connect(mapped[i], mapped[(i+1+j)%10])
+			graph.CreateEdge(mapped[i], mapped[(i+1+j)%10])
 		}
 	}
 	graph.verify(t)
@@ -185,21 +185,21 @@ func TestConnect(t *testing.T) {
 	}
 }
 
-func TestUnconnect(t *testing.T) {
+func TestRemoveEdge(t *testing.T) {
 	g := New(Undirected)
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.Connect(nodes[0], nodes[0])
-	g.Connect(nodes[1], nodes[0])
-	g.Connect(nodes[0], nodes[1])
-	g.Connect(nodes[1], nodes[1])
+	g.CreateEdge(nodes[0], nodes[0])
+	g.CreateEdge(nodes[1], nodes[0])
+	g.CreateEdge(nodes[0], nodes[1])
+	g.CreateEdge(nodes[1], nodes[1])
 	g.verify(t)
-	g.Unconnect(nodes[0], nodes[0])
+	g.RemoveEdge(nodes[0], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[0], nodes[1])
+	g.RemoveEdge(nodes[0], nodes[1])
 	g.verify(t)
-	g.Unconnect(nodes[1], nodes[1])
+	g.RemoveEdge(nodes[1], nodes[1])
 	g.verify(t)
 	nodes = make([]Node, 10)
 	g = New(Directed)
@@ -209,37 +209,37 @@ func TestUnconnect(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.Connect(nodes[i], nodes[j]) != nil {
+			if g.CreateEdge(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
 	}
 	g.verify(t)
-	g.Unconnect(nodes[5], nodes[4])
+	g.RemoveEdge(nodes[5], nodes[4])
 	g.verify(t)
-	g.Unconnect(nodes[9], nodes[0])
+	g.RemoveEdge(nodes[9], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[9], nodes[0])
+	g.RemoveEdge(nodes[9], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[0], nodes[0])
+	g.RemoveEdge(nodes[0], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[1], nodes[0])
+	g.RemoveEdge(nodes[1], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[2], nodes[0])
+	g.RemoveEdge(nodes[2], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[3], nodes[0])
+	g.RemoveEdge(nodes[3], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[4], nodes[0])
+	g.RemoveEdge(nodes[4], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[5], nodes[0])
+	g.RemoveEdge(nodes[5], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[6], nodes[0])
+	g.RemoveEdge(nodes[6], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[7], nodes[0])
+	g.RemoveEdge(nodes[7], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[8], nodes[0])
+	g.RemoveEdge(nodes[8], nodes[0])
 	g.verify(t)
-	g.Unconnect(nodes[9], nodes[0])
+	g.RemoveEdge(nodes[9], nodes[0])
 	g.verify(t)
 }
 
@@ -248,7 +248,7 @@ func TestNeighbors(t *testing.T) {
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.Connect(nodes[1], nodes[0])
+	g.CreateEdge(nodes[1], nodes[0])
 	g.verify(t)
 	neighbors := g.Neighbors(nodes[0])
 	if !nodeSliceContains(neighbors, nodes[1]) {
@@ -260,8 +260,8 @@ func TestNeighbors(t *testing.T) {
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
 	nodes[2] = g.MakeNode()
-	g.Connect(nodes[1], nodes[0])
-	g.Connect(nodes[2], nodes[1]) // 2->1->0
+	g.CreateEdge(nodes[1], nodes[0])
+	g.CreateEdge(nodes[2], nodes[1]) // 2->1->0
 	g.verify(t)
 	neighbors = g.Neighbors(nodes[1])
 	if nodeSliceContains(neighbors, nodes[2]) {
