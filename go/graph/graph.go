@@ -4,7 +4,6 @@ package graph
 
 import (
 	"errors"
-	"fmt"
 )
 
 // Directed or undirected.
@@ -18,42 +17,17 @@ const (
 // An adjacency slice representation of a graph. Can be directed or undirected.
 type Graph struct {
 	nodes []*node
-	edges map[*node][]Edge
 	kind  GraphType // 1 for directed, 0 otherwise
 }
 
-// Prints in the format
-//     g->{
-//         0->{0->0, 1->0,}
-//         1->{2->1, 1->0,}
-//         2->{2->1,}
-//         3->{}
-//     }
-// Where numbers represent graph indices and -> points to nodes indices they connect to.
-// If the graph is undirected, one edge (i.e., 2->1) is represented on both nodes.
-func (g *Graph) String() string {
-	rVal := "g->{\n"
-	for _, node := range g.nodes {
-		rVal += "\t" + node.String() + "->{"
-		for _, adj := range g.edges[node] {
-			rVal += adj.Start.node.String() + "->" + adj.End.node.String() + ","
-		}
-		rVal += "}\n"
-	}
-	rVal += "}"
-	return rVal
-}
-
 type node struct {
-	graphIndex int
-	state      int   // used for metadata
-	data       int   // also used for metadata
-	parent     *node // also used for metadata
-	container  Node  // who holds me
-}
-
-func (n *node) String() string {
-	return fmt.Sprintf("%v", n.graphIndex)
+	edges         []edge
+	reversedEdges []edge
+	index         int
+	state         int   // used for metadata
+	data          int   // also used for metadata
+	parent        *node // also used for metadata
+	container     Node  // who holds me
 }
 
 // Node connects to a backing node on the graph. It can safely be used in maps.
@@ -73,8 +47,13 @@ type Node struct {
 	Value *interface{}
 }
 
+type edge struct {
+	weight int
+	end    *node
+}
+
 // An edge connects two Nodes in a graph. To modify the weight, use
-// the ConnectWeight function. Any local modifications will
+// the CreateEdgeWeight function. Any local modifications will
 // not be seen in the graph.
 //
 // In an undirected graph, the start of an edge and end of an edge
@@ -86,32 +65,21 @@ type Edge struct {
 	Kind   GraphType
 }
 
-// Prints in the following format:
-//     {5 2->3}
-// Where 5 is the weight and 2->3 is an edge.
-func (e Edge) String() string {
-	rVal := fmt.Sprintf("{%v", e.Weight)
-	rVal += " " + e.Start.node.String() + "->"
-	rVal += e.End.node.String() + "}"
-	return rVal
-}
-
 // Creates and returns an empty graph. This function must be called before nodes can be connected.
 // If kind is Directed, returns a directed graph.
 // If kind is Undirected, this function will return an undirected graph.
 // If kind is anything else, this function will return an undirected graph by default.
 func New(kind GraphType) *Graph {
-	switch kind {
-	case Directed:
-		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge), kind: Directed}
-	default:
-		return &Graph{nodes: []*node{}, edges: make(map[*node][]Edge)}
+	g := &Graph{}
+	if kind == Directed {
+		g.kind = Directed
 	}
+	return g
 }
 
 // Creates a node, adds it to the graph and returns the new node.
 func (g *Graph) MakeNode() Node {
-	newNode := &node{graphIndex: len(g.nodes)}
+	newNode := &node{index: len(g.nodes)}
 	newNode.container = Node{node: newNode, Value: new(interface{})}
 	g.nodes = append(g.nodes, newNode)
 	return newNode.container
@@ -129,29 +97,50 @@ func (g *Graph) RemoveNode(remove *Node) {
 		return
 	}
 	nodeExists := false
+	// remove all edges that connect from a different node to this one
 	for _, node := range g.nodes {
-		edges := g.edges[node]
+		if node == remove.node {
+			// clear memory for everything the removing node contains
+			for _, edge := range node.edges {
+				edge.end = nil
+			}
+			for _, edge := range node.reversedEdges {
+				edge.end = nil
+			}
+			continue
+		}
 		// O(E)
-		swapIndex := -1 // index edge to remove is at: swap this with element at end of slice
-		for edgeI, edge := range edges {
-			if edge.Start == *remove || edge.End == *remove {
+		swapIndex := -1 // index that the edge-to-remove is at: swap this with element at end of slice
+		for edgeI, edge := range node.edges {
+			if edge.end == remove.node {
 				nodeExists = true
-				edge.Start.node = nil
-				edge.End.node = nil
+				edge.end = nil
 				swapIndex = edgeI
 			}
 		}
 		if swapIndex > -1 {
-			edges[swapIndex], edges[len(edges)-1] = edges[len(edges)-1], edges[swapIndex]
-			edges = edges[:len(edges)-1]
+			node.edges[swapIndex], node.edges[len(node.edges)-1] = node.edges[len(node.edges)-1], node.edges[swapIndex]
+			node.edges = node.edges[:len(node.edges)-1]
 		}
-		g.edges[node] = edges
-		if node.graphIndex > remove.node.graphIndex {
-			node.graphIndex--
+		// now deal with possible reversed edge
+		swapIndex = -1
+		for edgeI, edge := range node.reversedEdges {
+			if edge.end == remove.node {
+				nodeExists = true
+				edge.end = nil
+				swapIndex = edgeI
+			}
+		}
+		if swapIndex > -1 {
+			node.reversedEdges[swapIndex], node.reversedEdges[len(node.reversedEdges)-1] = node.reversedEdges[len(node.reversedEdges)-1], node.reversedEdges[swapIndex]
+			node.reversedEdges = node.reversedEdges[:len(node.reversedEdges)-1]
+		}
+		if node.index > remove.node.index {
+			node.index--
 		}
 	}
-	if remove.node.graphIndex < len(g.nodes)-1 {
-		copy(g.nodes[remove.node.graphIndex:], g.nodes[remove.node.graphIndex+1:])
+	if remove.node.index < len(g.nodes)-1 {
+		copy(g.nodes[remove.node.index:], g.nodes[remove.node.index+1:])
 	}
 	if nodeExists {
 		g.nodes[len(g.nodes)-1] = nil // garbage collect
@@ -161,10 +150,10 @@ func (g *Graph) RemoveNode(remove *Node) {
 	remove.node = nil
 }
 
-// This function calls ConnectWeight with a weight of 0
+// This function calls CreateEdgeWeight with a weight of 0
 // and returns an error if either of the nodes do not
 // belong in the graph.
-// Calling Connect multiple times on the same nodes will not
+// Calling CreateEdge multiple times on the same nodes will not
 // make multiple edges.
 //
 // Runs in O(E) time, where E is the number of edges coming out
@@ -174,14 +163,14 @@ func (g *Graph) RemoveNode(remove *Node) {
 // then connecting two nodes will be near O(1) time. For the exact
 // specifics on the performance of this function, click on it and
 // read the function.
-func (g *Graph) Connect(from, to Node) error {
-	return g.ConnectWeight(from, to, 0)
+func (g *Graph) CreateEdge(from, to Node) error {
+	return g.CreateEdgeWeight(from, to, 0)
 }
 
 // Creates an edge in the graph with a corresponding weight.
 // This function will return an error if either of the nodes
 // do not belong in the graph.
-// Calling ConnectWeight multiple times on the same nodes will not
+// Calling CreateEdgeWeight multiple times on the same nodes will not
 // make multiple edges; this function will update
 // the weight on the node to a new value.
 //
@@ -192,52 +181,66 @@ func (g *Graph) Connect(from, to Node) error {
 // then connecting two nodes will be near O(1) time. For the exact
 // specifics on the performance of this function, click on it and
 // read the function.
-func (g *Graph) ConnectWeight(from, to Node, weight int) error {
-	if from.node == nil || from.node.graphIndex >= len(g.nodes) || g.nodes[from.node.graphIndex] != from.node {
-		return errors.New("First node in Connect call does not belong to this graph")
+func (g *Graph) CreateEdgeWeight(from, to Node, weight int) error {
+	if from.node == nil || from.node.index >= len(g.nodes) || g.nodes[from.node.index] != from.node {
+		return errors.New("First node in CreateEdge call does not belong to this graph")
 	}
-	if to.node == nil || to.node.graphIndex >= len(g.nodes) || g.nodes[to.node.graphIndex] != to.node {
-		return errors.New("Second node in Connect call does not belong to this graph")
+	if to.node == nil || to.node.index >= len(g.nodes) || g.nodes[to.node.index] != to.node {
+		return errors.New("Second node in CreateEdge call does not belong to this graph")
 	}
-	for edgeI, edge := range g.edges[from.node] { // check if edge already exists
-		if edge.End == to || edge.Start == to && edge.End == from {
-			g.edges[from.node][edgeI].Weight = weight
+	for edgeI, edge := range from.node.edges { // check if edge already exists
+		if edge.end == to.node {
+			from.node.edges[edgeI].weight = weight
+			// fix reversed edge's weight as well
+			for rEdgeI, rEdge := range to.node.reversedEdges { // TODO: add test for this
+				if rEdge.end == from.node { // (priority low, reversed weight
+					to.node.reversedEdges[rEdgeI].weight = weight //  should not be used anyway)
+				}
+			}
 			return nil
 		}
 	}
-	newEdge := Edge{Weight: weight, Start: from, End: to}
-	if g.kind == Directed {
-		newEdge.Kind = Directed
-	}
-	g.edges[from.node] = append(g.edges[from.node], newEdge)
-	if g.kind == Undirected && to != from { // for book keeping
-		g.edges[to.node] = append(g.edges[to.node], newEdge)
+	newEdge := edge{weight: weight, end: to.node}
+	// reversed edges only used in directed graph algorithms
+	reversedEdge := edge{weight: weight, end: from.node}
+	from.node.edges = append(from.node.edges, newEdge)
+	to.node.reversedEdges = append(to.node.reversedEdges, reversedEdge)
+	if g.kind == Undirected && to != from {
+		to.node.edges = append(to.node.edges, reversedEdge)
 	}
 	return nil
 }
 
 // Removes any edges between the nodes. Runs in O(E) time.
-func (g *Graph) Unconnect(from, to Node) {
-	fromEdges := g.edges[from.node]
-	toEdges := g.edges[to.node]
+func (g *Graph) RemoveEdge(from, to Node) {
+	fromEdges := from.node.edges
+	toEdges := to.node.edges
+	toREdges := to.node.reversedEdges
 	for i, edge := range fromEdges {
-		if edge.Start == to && edge.End == from || edge.End == to {
+		if edge.end == to.node {
 			fromEdges[i], fromEdges[len(fromEdges)-1] = fromEdges[len(fromEdges)-1], fromEdges[i]
-			fromEdges[len(fromEdges)-1].Start.node = nil // for garbage collection
-			fromEdges[len(fromEdges)-1].End.node = nil
+			fromEdges[len(fromEdges)-1].end = nil // for garbage collection
 			fromEdges = fromEdges[:len(fromEdges)-1]
-			g.edges[from.node] = fromEdges
+			from.node.edges = fromEdges
 			break
 		}
 	}
-	if g.kind == Undirected && from != to {
+	for i, edge := range toREdges {
+		if edge.end == from.node {
+			toREdges[i], toREdges[len(toREdges)-1] = toREdges[len(toREdges)-1], toREdges[i]
+			toREdges[len(toREdges)-1].end = nil
+			toREdges = toREdges[:len(toREdges)-1]
+			to.node.reversedEdges = toREdges
+			break
+		}
+	}
+	if g.kind == Undirected && from.node != to.node {
 		for i, edge := range toEdges {
-			if edge.Start == from && edge.End == to || edge.End == from {
+			if edge.end == from.node {
 				toEdges[i], toEdges[len(toEdges)-1] = toEdges[len(toEdges)-1], toEdges[i]
-				toEdges[len(toEdges)-1].Start.node = nil // for garbage collection
-				toEdges[len(toEdges)-1].End.node = nil
+				toEdges[len(toEdges)-1].end = nil
 				toEdges = toEdges[:len(toEdges)-1]
-				g.edges[to.node] = toEdges
+				to.node.edges = toEdges
 				break
 			}
 		}
@@ -246,13 +249,10 @@ func (g *Graph) Unconnect(from, to Node) {
 
 // Returns a slice of nodes that are reachable from the given node in a graph.
 func (g *Graph) Neighbors(n Node) []Node {
-	neighbors := make([]Node, 0, len(g.edges[n.node]))
-	for _, edge := range g.edges[n.node] {
-		// if Undirected, either start or end could be the node we are looking for neighbors of
-		if edge.Start == n {
-			neighbors = append(neighbors, edge.End)
-		} else {
-			neighbors = append(neighbors, edge.Start)
+	neighbors := make([]Node, 0, len(n.node.edges))
+	if g.nodes[n.node.index] == n.node {
+		for _, edge := range n.node.edges {
+			neighbors = append(neighbors, edge.end.container)
 		}
 	}
 	return neighbors
