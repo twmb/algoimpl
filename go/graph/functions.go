@@ -16,10 +16,21 @@ const (
 // again anyway.
 func (g *Graph) dfs(node *node, finishList *[]Node) {
 	node.state = seen
-	for _, edge := range g.edges[node] {
-		if edge.End.node.state == unseen {
-			edge.End.node.parent = node
-			g.dfs(edge.End.node, finishList)
+	for _, edge := range node.edges {
+		if edge.end.state == unseen {
+			edge.end.parent = node
+			g.dfs(edge.end, finishList)
+		}
+	}
+	*finishList = append(*finishList, node.container)
+}
+
+func (g *Graph) dfsReversedEdges(node *node, finishList *[]Node) {
+	node.state = seen
+	for _, edge := range node.reversedEdges {
+		if edge.end.state == unseen {
+			edge.end.parent = node
+			g.dfsReversedEdges(edge.end, finishList)
 		}
 	}
 	*finishList = append(*finishList, node.container)
@@ -57,8 +68,8 @@ func (g *Graph) Reverse() *Graph {
 	}
 	// O(V + E)
 	for _, node := range g.nodes {
-		for _, edge := range g.edges[node] {
-			reversed.Connect(reversed.nodes[edge.End.node.graphIndex].container, reversed.nodes[node.graphIndex].container)
+		for _, edge := range node.edges {
+			reversed.CreateEdge(reversed.nodes[edge.end.index].container, reversed.nodes[node.index].container)
 		}
 	}
 	return reversed
@@ -84,12 +95,10 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 	for i := range finishOrder {
 		finishOrder[i].node.state = unseen
 	}
-	// creates a reversed graph with empty parents
-	reversed := g.Reverse()
 	for _, sink := range finishOrder {
-		if reversed.nodes[sink.node.graphIndex].state == unseen {
+		if g.nodes[sink.node.index].state == unseen {
 			component := make([]Node, 0)
-			reversed.dfs(reversed.nodes[sink.node.graphIndex], &component)
+			g.dfsReversedEdges(g.nodes[sink.node.index], &component)
 			components = append(components, component)
 		}
 	}
@@ -134,15 +143,12 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 
 	for nodes.Len() > 0 {
 		min := heap.Pop(nodes).(*node)
-		for _, edge := range g.edges[min] {
-			v := edge.Start.node // get the other side of the edge
-			if min == edge.Start.node {
-				v = edge.End.node
-			}
-			if nodes.QueueContains(v) && edge.Weight < (v.state & ^queued) {
+		for _, edge := range min.edges {
+			v := edge.end // get the other side of the edge
+			if nodes.QueueContains(v) && edge.weight < (v.state & ^queued) {
 				v.parent = min
 				heap.Remove(nodes, v.data)     // remove it
-				v.state = edge.Weight | queued // update state, add queue bit
+				v.state = edge.weight | queued // update state, add queue bit
 				heap.Push(nodes, v)            // add it back in, WORD, O(lg n) update key time!
 			}
 		}
@@ -151,7 +157,8 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	mst := make([]Edge, 0)
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
-			mst = append(mst, g.edgeBetween(g.nodes[i], g.nodes[i].parent))
+			mst = append(mst, Edge{Weight: g.edgeBetweenWeight(g.nodes[i], g.nodes[i].parent), Start: g.nodes[i].container,
+				End: g.nodes[i].parent.container, Kind: g.kind})
 		}
 	}
 
@@ -160,14 +167,14 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 
 // only called when the graph is guaranteed to have an edge
 // between the two nodes
-func (g *Graph) edgeBetween(v, u *node) Edge {
-	for _, edge := range g.edges[u] {
+func (g *Graph) edgeBetweenWeight(v, u *node) int {
+	for _, edge := range u.edges {
 		// one of the two is always u
-		if edge.Start.node == v || edge.End.node == v {
-			return edge
+		if edge.end == v {
+			return edge.weight
 		}
 	}
-	return Edge{}
+	return 0
 }
 
 type nodeSlice []*node
