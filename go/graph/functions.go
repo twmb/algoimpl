@@ -69,7 +69,7 @@ func (g *Graph) Reverse() *Graph {
 	// O(V + E)
 	for _, node := range g.nodes {
 		for _, edge := range node.edges {
-			reversed.CreateEdge(reversed.nodes[edge.end.index].container, reversed.nodes[node.index].container)
+			reversed.MakeEdge(reversed.nodes[edge.end.index].container, reversed.nodes[node.index].container)
 		}
 	}
 	return reversed

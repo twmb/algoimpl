@@ -89,10 +89,10 @@ func TestRemoveNode(t *testing.T) {
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.CreateEdge(nodes[0], nodes[0])
-	g.CreateEdge(nodes[1], nodes[0])
-	g.CreateEdge(nodes[0], nodes[1])
-	g.CreateEdge(nodes[1], nodes[1])
+	g.MakeEdge(nodes[0], nodes[0])
+	g.MakeEdge(nodes[1], nodes[0])
+	g.MakeEdge(nodes[0], nodes[1])
+	g.MakeEdge(nodes[1], nodes[1])
 	g.verify(t)
 	g.RemoveNode(&nodes[1])
 	g.verify(t)
@@ -108,7 +108,7 @@ func TestRemoveNode(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.CreateEdge(nodes[i], nodes[j]) != nil {
+			if g.MakeEdge(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
@@ -145,7 +145,7 @@ func TestRemoveNode(t *testing.T) {
 	g.verify(t)
 }
 
-func TestCreateEdge(t *testing.T) {
+func TestMakeEdge(t *testing.T) {
 	graph := New(Undirected)
 	mapped := make(map[int]Node, 0)
 	for i := 0; i < 10; i++ {
@@ -153,7 +153,7 @@ func TestCreateEdge(t *testing.T) {
 	}
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
-			graph.CreateEdge(mapped[i], mapped[(i+1+j)%10])
+			graph.MakeEdge(mapped[i], mapped[(i+1+j)%10])
 		}
 	}
 	graph.verify(t)
@@ -163,7 +163,7 @@ func TestCreateEdge(t *testing.T) {
 		}
 	}
 	var nonGraphNode Node
-	err := graph.CreateEdge(nonGraphNode, mapped[0])
+	err := graph.MakeEdge(nonGraphNode, mapped[0])
 	if err == nil {
 		t.Errorf("err was nil when expecting error for connecting non graph node to graph")
 	}
@@ -174,7 +174,7 @@ func TestCreateEdge(t *testing.T) {
 	}
 	for j := 0; j < 5; j++ {
 		for i := 0; i < 10; i++ {
-			graph.CreateEdge(mapped[i], mapped[(i+1+j)%10])
+			graph.MakeEdge(mapped[i], mapped[(i+1+j)%10])
 		}
 	}
 	graph.verify(t)
@@ -190,10 +190,10 @@ func TestRemoveEdge(t *testing.T) {
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.CreateEdge(nodes[0], nodes[0])
-	g.CreateEdge(nodes[1], nodes[0])
-	g.CreateEdge(nodes[0], nodes[1])
-	g.CreateEdge(nodes[1], nodes[1])
+	g.MakeEdge(nodes[0], nodes[0])
+	g.MakeEdge(nodes[1], nodes[0])
+	g.MakeEdge(nodes[0], nodes[1])
+	g.MakeEdge(nodes[1], nodes[1])
 	g.verify(t)
 	g.RemoveEdge(nodes[0], nodes[0])
 	g.verify(t)
@@ -209,7 +209,7 @@ func TestRemoveEdge(t *testing.T) {
 	// connect every node to every node
 	for j := 0; j < 10; j++ {
 		for i := 0; i < 10; i++ {
-			if g.CreateEdge(nodes[i], nodes[j]) != nil {
+			if g.MakeEdge(nodes[i], nodes[j]) != nil {
 				t.Errorf("could not connect %v, %v", i, j)
 			}
 		}
@@ -248,7 +248,7 @@ func TestNeighbors(t *testing.T) {
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
-	g.CreateEdge(nodes[1], nodes[0])
+	g.MakeEdge(nodes[1], nodes[0])
 	g.verify(t)
 	neighbors := g.Neighbors(nodes[0])
 	if !nodeSliceContains(neighbors, nodes[1]) {
@@ -260,8 +260,8 @@ func TestNeighbors(t *testing.T) {
 	nodes[0] = g.MakeNode()
 	nodes[1] = g.MakeNode()
 	nodes[2] = g.MakeNode()
-	g.CreateEdge(nodes[1], nodes[0])
-	g.CreateEdge(nodes[2], nodes[1]) // 2->1->0
+	g.MakeEdge(nodes[1], nodes[0])
+	g.MakeEdge(nodes[2], nodes[1]) // 2->1->0
 	g.verify(t)
 	neighbors = g.Neighbors(nodes[1])
 	if nodeSliceContains(neighbors, nodes[2]) {

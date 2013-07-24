@@ -53,7 +53,7 @@ type edge struct {
 }
 
 // An edge connects two Nodes in a graph. To modify the weight, use
-// the CreateEdgeWeight function. Any local modifications will
+// the MakeEdgeWeight function. Any local modifications will
 // not be seen in the graph.
 //
 // In an undirected graph, the start of an edge and end of an edge
@@ -150,10 +150,10 @@ func (g *Graph) RemoveNode(remove *Node) {
 	remove.node = nil
 }
 
-// This function calls CreateEdgeWeight with a weight of 0
+// This function calls MakeEdgeWeight with a weight of 0
 // and returns an error if either of the nodes do not
 // belong in the graph.
-// Calling CreateEdge multiple times on the same nodes will not
+// Calling MakeEdge multiple times on the same nodes will not
 // make multiple edges.
 //
 // Runs in O(E) time, where E is the number of edges coming out
@@ -163,14 +163,14 @@ func (g *Graph) RemoveNode(remove *Node) {
 // then connecting two nodes will be near O(1) time. For the exact
 // specifics on the performance of this function, click on it and
 // read the function.
-func (g *Graph) CreateEdge(from, to Node) error {
-	return g.CreateEdgeWeight(from, to, 0)
+func (g *Graph) MakeEdge(from, to Node) error {
+	return g.MakeEdgeWeight(from, to, 0)
 }
 
 // Creates an edge in the graph with a corresponding weight.
 // This function will return an error if either of the nodes
 // do not belong in the graph.
-// Calling CreateEdgeWeight multiple times on the same nodes will not
+// Calling MakeEdgeWeight multiple times on the same nodes will not
 // make multiple edges; this function will update
 // the weight on the node to a new value.
 //
@@ -181,12 +181,12 @@ func (g *Graph) CreateEdge(from, to Node) error {
 // then connecting two nodes will be near O(1) time. For the exact
 // specifics on the performance of this function, click on it and
 // read the function.
-func (g *Graph) CreateEdgeWeight(from, to Node, weight int) error {
+func (g *Graph) MakeEdgeWeight(from, to Node, weight int) error {
 	if from.node == nil || from.node.index >= len(g.nodes) || g.nodes[from.node.index] != from.node {
-		return errors.New("First node in CreateEdge call does not belong to this graph")
+		return errors.New("First node in MakeEdge call does not belong to this graph")
 	}
 	if to.node == nil || to.node.index >= len(g.nodes) || g.nodes[to.node.index] != to.node {
-		return errors.New("Second node in CreateEdge call does not belong to this graph")
+		return errors.New("Second node in MakeEdge call does not belong to this graph")
 	}
 	for edgeI, edge := range from.node.edges { // check if edge already exists
 		if edge.end == to.node {
