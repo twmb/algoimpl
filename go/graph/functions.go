@@ -2,6 +2,9 @@ package graph
 
 import (
 	"container/heap"
+	"github.com/twmb/algoimpl/go/graph/lite"
+	"math/rand"
+	"time"
 )
 
 const (
@@ -105,26 +108,93 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 	return components
 }
 
-// This function will sort the edges vertices and return a the edges
-// in sorted order. An edge is represented by a length 2 array
-// containing the start node and the end node.
-//func Sort(g *Graph) []Edge { // O(V+E)
-//	var edges []Edge
-//	if g.kind == Directed {
-//		edges = make([]Edge, 0, len(g.edges))
-//	} else {
-//		edges = make([]Edge, 0, len(g.edges)/2)
-//	}
-//	for _, node := range g.nodes { // O(V)
-//		for _, edge := range g.edges[node] { // O(E)
-//			if g.kind == Directed || edge.Start.node != node {
-//				edges = append(edges, edge)
-//			}
-//		}
-//	}
-//	sort.Sort(edgeSlice(edges)) // O(E)
-//	return edges
-//}
+func (g *Graph) RandMinimumCut(iterations int) []Edge {
+	// copy a graph into mock nodes and edges
+	// so that I can collapse nodes / edges without losing
+	// the true spanning edge's start and end
+	rand.Seed(time.Now().Unix())
+	var minLiteEdges []lite.Edge
+	for iteration := 0; iteration < iterations; iteration++ {
+
+		gLite := lite.NewGraph(len(g.nodes))
+		for i := range g.nodes {
+			for _, edge := range g.nodes[i].edges {
+				gLite[i].Edges = append(gLite[i].Edges, lite.Edge{End: edge.end.index, S: g.nodes[i], E: edge.end})
+			}
+		}
+
+		for len(gLite) > 2 {
+			randNodeI := rand.Intn(len(gLite))
+			randNode := gLite[randNodeI]
+
+			randEdgeI := rand.Intn(len(randNode.Edges))
+			randEdge := randNode.Edges[randEdgeI]
+
+			removeNodeI := randEdge.End
+
+			finalRandNodeI := randNodeI
+			if randNodeI > removeNodeI {
+				finalRandNodeI-- // the final index of randNode will be back one
+			}
+
+			// every edge on rand node pointing to remove node is removed (will form loop when collapsed)
+			shift := 0
+			for e := range gLite[randNodeI].Edges {
+				if gLite[randNodeI].Edges[e].End == removeNodeI {
+					shift++
+					continue
+				}
+				if gLite[randNodeI].Edges[e].End > removeNodeI {
+					gLite[randNodeI].Edges[e].End--
+				}
+				gLite[randNodeI].Edges[e-shift] = gLite[randNodeI].Edges[e]
+			}
+			gLite[randNodeI].Edges = gLite[randNodeI].Edges[:len(gLite[randNodeI].Edges)-shift]
+
+			// everything on every other node pointing to removeNode should now point to randNode
+			for n := range gLite {
+				if n == removeNodeI || n == randNodeI {
+					continue
+				}
+				for e := range gLite[n].Edges {
+					// if the current edge on the current node points to the removal node
+					if gLite[n].Edges[e].End == removeNodeI {
+						// point it to the final randNode position
+						gLite[n].Edges[e].End = finalRandNodeI
+					} else if gLite[n].Edges[e].End > removeNodeI {
+						// or, if the edge points to something AFTER the removal node, decrement that edge's end
+						gLite[n].Edges[e].End--
+					}
+				}
+			}
+			numAppended := 0
+			// everything removeNode points to, randNode should now point to
+			for e := range gLite[removeNodeI].Edges {
+				if gLite[removeNodeI].Edges[e].End != randNodeI {
+					if gLite[removeNodeI].Edges[e].End > removeNodeI {
+						gLite[removeNodeI].Edges[e].End--
+					}
+					gLite[randNodeI].Edges = append(gLite[randNodeI].Edges, gLite[removeNodeI].Edges[e])
+					numAppended++
+				}
+			}
+			// shift all nodes after the remove node back one
+			gLite = append(gLite[:removeNodeI], gLite[removeNodeI+1:]...)
+		}
+		if iteration == 0 || len(gLite[0].Edges) < len(minLiteEdges) {
+			minLiteEdges = make([]lite.Edge, len(gLite[0].Edges))
+			copy(minLiteEdges, gLite[0].Edges)
+		}
+	}
+
+	minCut := make([]Edge, len(minLiteEdges))
+	for i := range minLiteEdges {
+		start := minLiteEdges[i].S.(*node)
+		end := minLiteEdges[i].E.(*node)
+		minCut[i] = Edge{Weight: g.edgeWeightBetween(start, end), Start: start.container, End: end.container, Kind: g.kind}
+	}
+	return minCut
+}
 
 // This function will return the edges corresponding to the
 // minimum spanning tree in the graph based off of the edge's weight values.
@@ -157,7 +227,7 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	mst := make([]Edge, 0)
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
-			mst = append(mst, Edge{Weight: g.edgeBetweenWeight(g.nodes[i], g.nodes[i].parent), Start: g.nodes[i].container,
+			mst = append(mst, Edge{Weight: g.edgeWeightBetween(g.nodes[i], g.nodes[i].parent), Start: g.nodes[i].container,
 				End: g.nodes[i].parent.container, Kind: g.kind})
 		}
 	}
@@ -167,7 +237,7 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 
 // only called when the graph is guaranteed to have an edge
 // between the two nodes
-func (g *Graph) edgeBetweenWeight(v, u *node) int {
+func (g *Graph) edgeWeightBetween(v, u *node) int {
 	for _, edge := range u.edges {
 		// one of the two is always u
 		if edge.end == v {
