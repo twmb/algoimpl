@@ -23,5 +23,5 @@ test:	all
 		done 
 
 %_test:	%_test.c %.c %.h
-	gcc ${CFLAGS} -o $@ $(filter %_test.c %.c, $^)
+	clang ${CFLAGS} -o $@ $(filter %_test.c %.c, $^)
 
