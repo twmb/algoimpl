@@ -1,7 +1,7 @@
 ALL_TEST_SRC 	:= $(shell find . -name '*_test.c')
 ALL_TEST_EXE	:= ${ALL_TEST_SRC:.c=}
 
-CFLAGS		:= -Wall -pedantic -std=c99
+CFLAGS		:= -Wall -pedantic -std=c11
 
 all:	${ALL_TEST_EXE}
 
