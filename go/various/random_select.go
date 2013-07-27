@@ -2,6 +2,7 @@ package various
 
 import (
 	"math/rand"
+	"time"
 )
 
 // returns the final pivot index
@@ -38,6 +39,7 @@ func selectOrder(i int, slice []int) int {
 // Returns the ith smallest element from a slice of integers.
 // Runs in expected O(n) time, O(n^2) worst time (unlikely)
 func SelectOrder(i int, slice []int) int {
+	rand.Seed(time.Now().Unix())
 	cslice := make([]int, len(slice)) // copy
 	copy(cslice, slice[:])
 	return selectOrder(i, cslice)
