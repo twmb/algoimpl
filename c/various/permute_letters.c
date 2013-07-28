@@ -4,22 +4,17 @@
 
 #include "permute_letters.h"
 
-struct letters {
-  char letter;
-  bool used;
-};
-
-void do_permute_letters(struct letters *all, int len, char *buffer, int position) {
+void do_permute_letters(const char *letters, int len, bool *used, char *buffer, int position) {
   if (position == len) {
     printf("%s\n", buffer);
     return;
   }
   for (int i = 0; i < len; i++) {
-    if (!all[i].used) {
-      buffer[position] = all[i].letter;
-      all[i].used = true;
-      do_permute_letters(all, len, buffer, position+1);
-      all[i].used = false;
+    if (!used[i]) {
+      buffer[position] = letters[i];
+      used[i] = true;
+      do_permute_letters(letters, len, used, buffer, position+1);
+      used[i] = false;
     }
   }
 }
@@ -28,10 +23,9 @@ void permute_letters(const char *letters, int len) {
   char buffer[len+1];
   buffer[len] = '\0';
   strcpy(buffer, letters);
-  struct letters all[len];
+  bool used[len];
   for (int i = 0; i < len; i++) {
-    all[i].letter = letters[i];
-    all[i].used = false;
+    used[i] = false;
   }
-  do_permute_letters(all, len, buffer, 0);
+  do_permute_letters(letters, len, used, buffer, 0);
 }
