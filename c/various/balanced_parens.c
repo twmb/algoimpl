@@ -18,6 +18,5 @@ char do_is_balanced(const char **string) {
 }
 
 bool is_balanced(const char *string) {
-  const char *copy = string;
-  return do_is_balanced(&copy) == '\0';
+  return do_is_balanced(&string) == '\0';
 }
