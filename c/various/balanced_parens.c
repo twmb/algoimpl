@@ -4,22 +4,20 @@
 
 bool do_is_balanced(const char *string, int *strpos, char curparen) {
   for (; string[*strpos] != '\0'; (*strpos)++) {
-    if (string[*strpos] == '(' || string[*strpos] == '{' || string[*strpos] == '[') {
-      if (!do_is_balanced(string, strpos, string[(*strpos)++])) {
-        return false;
-      }
-    } else {
-      switch (string[*strpos]) {
-        case ')': if (curparen == '(') return true; return false; break;
-        case ']': if (curparen == '[') return true; return false; break;
-        case '}': if (curparen == '{') return true; return false; break;
-      }
+    switch (string[*strpos]) {
+      case '(':
+      case '{':
+      case '[':
+        if (!do_is_balanced(string, strpos, string[(*strpos)++])) {
+          return false;
+        }
+        break;
+      case ')': if (curparen == '(') return true; return false; break;
+      case ']': if (curparen == '[') return true; return false; break;
+      case '}': if (curparen == '{') return true; return false; break;
     }
   }
-  if (curparen != '\0') {
-    return false;
-  }
-  return true;
+  return curparen == '\0';
 }
 
 bool is_balanced(const char *string) {
