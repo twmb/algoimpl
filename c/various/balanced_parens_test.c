@@ -9,6 +9,10 @@ int main() {
     failed = -1;
     printf("failed on input \"asdf\"\n");
   }
+  if (!is_balanced("({})")) {
+    failed = -1;
+    printf("failed on input \"({})\"\n");
+  }
   char *str = "asdf(asdf{asdf{asdf}asdf[asdf(asdf)]})";
   if (!is_balanced(str)) {
     failed = -1;
