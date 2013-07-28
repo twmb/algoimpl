@@ -1,26 +1,24 @@
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "balanced_parens.h"
 
-bool do_is_balanced(const char *string, int *strpos, char curparen) {
-  for (; string[*strpos] != '\0'; (*strpos)++) {
-    switch (string[*strpos]) {
-      case '(':
-      case '{':
-      case '[':
-        if (!do_is_balanced(string, strpos, string[(*strpos)++])) {
-          return false;
-        }
-        break;
-      case ')': if (curparen == '(') return true; return false; break;
-      case ']': if (curparen == '[') return true; return false; break;
-      case '}': if (curparen == '{') return true; return false; break;
+char do_is_balanced(const char **string) {
+  for (; **string != '\0'; ++*string) {
+    switch (**string) {
+      case '(': if (++*string, do_is_balanced(string) != ')') return '('; break;
+      case '{': if (++*string, do_is_balanced(string) != '}') return '{'; break;
+      case '[': if (++*string, do_is_balanced(string) != ']') return '['; break;
+      case ')': 
+      case ']':
+      case '}':
+        return **string;
     }
   }
-  return curparen == '\0';
+  return **string;
 }
 
 bool is_balanced(const char *string) {
-  int zPos = 0;
-  return do_is_balanced(string, &zPos, '\0');
+  const char *copy = string;
+  return do_is_balanced(&copy) == '\0';
 }
