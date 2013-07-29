@@ -73,7 +73,8 @@ func (g *Graph) Reverse() *Graph {
 	// O(V + E)
 	for _, node := range g.nodes {
 		for _, edge := range node.edges {
-			reversed.MakeEdge(reversed.nodes[edge.end.index].container, reversed.nodes[node.index].container)
+			reversed.MakeEdge(reversed.nodes[edge.end.index].container,
+				reversed.nodes[node.index].container)
 		}
 	}
 	return reversed
@@ -115,7 +116,7 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 // cut found in any iteration.
 //
 // This function takes a number of iterations to start concurrently. If
-// concurrent is <= 1, it will run only one iteration at a time.
+// concurrent is <= 1, it will run one iteration at a time.
 //
 // If the graph is Directed, this will return a cut of edges in both directions.
 // If the graph is Undirected, this will return a proper min cut.
@@ -129,7 +130,7 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 	for i := 0; i < concurrent; i++ {
 		sem <- struct{}{}
 	}
-	// make a lite slice of the edges and shuffle for random edge removal order
+	// make a lite slice of the edges
 	rand.Seed(time.Now().Unix())
 	var baseAllEdges []lite.Edge
 	for n := range g.nodes {
@@ -144,20 +145,20 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 
 	minCutLite := make([]lite.Edge, len(baseAllEdges))
 
-	// reuse lite edges as opposed to rebuild every iteration
 	for iter := 0; iter < iterations; iter++ {
 		<-sem
 		go func() {
 			nodecount := len(g.nodes)
 			allEdges := make([]lite.Edge, len(baseAllEdges))
 			copy(allEdges, baseAllEdges)
+			// shuffle for random edge removal order
 			shuffle(allEdges)
 			for nodecount > 2 {
 				// remove first edge, keep the start node, collapse the end node
 				// anything that points to the collapsing node now points to the keep node
 				// anything that starts at the collapsing node now starts at the keep node
 				keep := allEdges[len(allEdges)-1].Start
-				remove := allEdges[len(allEdges)-1].End // deleting this node
+				remove := allEdges[len(allEdges)-1].End
 				allEdges = allEdges[:len(allEdges)-1]
 				for e := 0; e < len(allEdges); e++ {
 					if allEdges[e].Start == remove {
@@ -166,14 +167,14 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 					if allEdges[e].End == remove {
 						allEdges[e].End = keep
 					}
-					// remove the node if it self looped
+					// remove the edge if it self looped
 					if allEdges[e].Start == allEdges[e].End {
 						allEdges[e] = allEdges[len(allEdges)-1]
 						allEdges = allEdges[:len(allEdges)-1]
 						e--
 					}
 				}
-
+				// every edge removed removes a node
 				nodecount--
 			}
 
@@ -183,6 +184,7 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 				copy(minCutLite, allEdges)
 			}
 			mutex.Unlock()
+
 			doneChan <- struct{}{}
 			sem <- struct{}{}
 		}()
