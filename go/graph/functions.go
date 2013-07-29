@@ -108,6 +108,13 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 	return components
 }
 
+// RandMinimumCut runs Kargers algorithm to find a random minimum cut
+// on the graph. If iterations is < 1, this will return an empty slice.
+// Otherwise, it returns a slice of the edges crossing the best minimum
+// cut found in any iteration.
+//
+// If the graph is Directed, this will return a cut of edges in both directions.
+// If the graph is Undirected, this will return a proper min cut.
 func (g *Graph) RandMinimumCut(iterations int) []Edge {
 	// make a lite slice of the edges and shuffle for random edge removal order
 	rand.Seed(time.Now().Unix())
@@ -177,7 +184,7 @@ func (g *Graph) RandMinimumCut(iterations int) []Edge {
 // Fischer-Yates shuffle
 func shuffle(edges []lite.Edge) {
 	for i := len(edges) - 1; i > 0; i-- {
-		j := rand.Intn(i)
+		j := rand.Intn(i + 1)
 		edges[j], edges[i] = edges[i], edges[j]
 	}
 }
