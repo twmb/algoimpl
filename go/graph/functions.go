@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"bitbucket.org/madmo/gosem"
 	"container/heap"
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
@@ -116,23 +115,24 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 // cut found in any iteration.
 //
 // This function takes a number of iterations to start concurrently. If
-// concurrent is < 1, it will run only one iteration at a time.
+// concurrent is <= 1, it will run only one iteration at a time.
 //
 // If the graph is Directed, this will return a cut of edges in both directions.
 // If the graph is Undirected, this will return a proper min cut.
 func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 	var mutex sync.Mutex
-	doneChan := make(chan bool)
+	doneChan := make(chan struct{}, iterations)
 	if concurrent < 1 {
 		concurrent = 1
 	}
-	semaphore := gosem.NewSemaphore(concurrent)
+	sem := make(chan struct{}, concurrent)
+	for i := 0; i < concurrent; i++ {
+		sem <- struct{}{}
+	}
 	// make a lite slice of the edges and shuffle for random edge removal order
 	rand.Seed(time.Now().Unix())
 	var baseAllEdges []lite.Edge
-	originalNodeCount := 0
 	for n := range g.nodes {
-		originalNodeCount++
 		for _, edge := range g.nodes[n].edges {
 			if g.kind == Undirected && n < edge.end.index {
 				continue
@@ -141,13 +141,13 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 		}
 	}
 
-	var minCutLite []lite.Edge
+	minCutLite := make([]lite.Edge, len(baseAllEdges))
 
 	// reuse lite edges as opposed to rebuild every iteration
 	for iter := 0; iter < iterations; iter++ {
-		semaphore.Acquire()
+		<-sem
 		go func() {
-			nodecount := originalNodeCount
+			nodecount := len(g.nodes)
 			allEdges := make([]lite.Edge, len(baseAllEdges))
 			copy(allEdges, baseAllEdges)
 			shuffle(allEdges)
@@ -182,8 +182,8 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 				copy(minCutLite, allEdges)
 			}
 			mutex.Unlock()
-			semaphore.Release()
-			doneChan <- true
+			doneChan <- struct{}{}
+			sem <- struct{}{}
 		}()
 	}
 	for iter := 0; iter < iterations; iter++ {
