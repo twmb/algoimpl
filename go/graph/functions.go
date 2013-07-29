@@ -137,7 +137,8 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 			if g.kind == Undirected && n < edge.end.index {
 				continue
 			}
-			baseAllEdges = append(baseAllEdges, lite.Edge{Start: n, End: edge.end.index, S: g.nodes[n], E: edge})
+			baseAllEdges = append(baseAllEdges, lite.Edge{Start: n,
+				End: edge.end.index, S: g.nodes[n], E: edge})
 		}
 	}
 
@@ -194,7 +195,8 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 	for i := range minCutLite {
 		start := minCutLite[i].S.(*node)
 		edge := minCutLite[i].E.(edge)
-		minCut[i] = Edge{Weight: edge.weight, Start: start.container, End: edge.end.container, Kind: g.kind}
+		minCut[i] = Edge{Weight: edge.weight, Start: start.container,
+			End: edge.end.container, Kind: g.kind}
 	}
 	return minCut
 }
@@ -238,8 +240,8 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	mst := make([]Edge, 0)
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
-			mst = append(mst, Edge{Weight: g.edgeWeightBetween(g.nodes[i], g.nodes[i].parent), Start: g.nodes[i].container,
-				End: g.nodes[i].parent.container, Kind: g.kind})
+			mst = append(mst, Edge{Weight: g.edgeWeightBetween(g.nodes[i], g.nodes[i].parent),
+				Start: g.nodes[i].container, End: g.nodes[i].parent.container, Kind: g.kind})
 		}
 	}
 
