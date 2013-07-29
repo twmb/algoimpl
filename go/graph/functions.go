@@ -109,91 +109,77 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 }
 
 func (g *Graph) RandMinimumCut(iterations int) []Edge {
-	// copy a graph into mock nodes and edges
-	// so that I can collapse nodes / edges without losing
-	// the true spanning edge's start and end
+	// make a lite slice of the edges and shuffle for random edge removal order
 	rand.Seed(time.Now().Unix())
-	var minLiteEdges []lite.Edge
-	for iteration := 0; iteration < iterations; iteration++ {
-
-		gLite := lite.NewGraph(len(g.nodes))
-		for i := range g.nodes {
-			for _, edge := range g.nodes[i].edges {
-				gLite[i].Edges = append(gLite[i].Edges, lite.Edge{End: edge.end.index, S: g.nodes[i], E: edge.end})
+	var baseAllEdges []lite.Edge
+	nodecount := 0
+	for n := range g.nodes {
+		nodecount++
+		for _, edge := range g.nodes[n].edges {
+			if g.kind == Undirected && n < edge.end.index {
+				continue
 			}
-		}
-
-		for len(gLite) > 2 {
-			randNodeI := rand.Intn(len(gLite))
-			randNode := gLite[randNodeI]
-
-			randEdgeI := rand.Intn(len(randNode.Edges))
-			randEdge := randNode.Edges[randEdgeI]
-
-			removeNodeI := randEdge.End
-
-			finalRandNodeI := randNodeI
-			if randNodeI > removeNodeI {
-				finalRandNodeI-- // the final index of randNode will be back one
-			}
-
-			// every edge on rand node pointing to remove node is removed (will form loop when collapsed)
-			shift := 0
-			for e := range gLite[randNodeI].Edges {
-				if gLite[randNodeI].Edges[e].End == removeNodeI {
-					shift++
-					continue
-				}
-				if gLite[randNodeI].Edges[e].End > removeNodeI {
-					gLite[randNodeI].Edges[e].End--
-				}
-				gLite[randNodeI].Edges[e-shift] = gLite[randNodeI].Edges[e]
-			}
-			gLite[randNodeI].Edges = gLite[randNodeI].Edges[:len(gLite[randNodeI].Edges)-shift]
-
-			// everything on every other node pointing to removeNode should now point to randNode
-			for n := range gLite {
-				if n == removeNodeI || n == randNodeI {
-					continue
-				}
-				for e := range gLite[n].Edges {
-					// if the current edge on the current node points to the removal node
-					if gLite[n].Edges[e].End == removeNodeI {
-						// point it to the final randNode position
-						gLite[n].Edges[e].End = finalRandNodeI
-					} else if gLite[n].Edges[e].End > removeNodeI {
-						// or, if the edge points to something AFTER the removal node, decrement that edge's end
-						gLite[n].Edges[e].End--
-					}
-				}
-			}
-			numAppended := 0
-			// everything removeNode points to, randNode should now point to
-			for e := range gLite[removeNodeI].Edges {
-				if gLite[removeNodeI].Edges[e].End != randNodeI {
-					if gLite[removeNodeI].Edges[e].End > removeNodeI {
-						gLite[removeNodeI].Edges[e].End--
-					}
-					gLite[randNodeI].Edges = append(gLite[randNodeI].Edges, gLite[removeNodeI].Edges[e])
-					numAppended++
-				}
-			}
-			// shift all nodes after the remove node back one
-			gLite = append(gLite[:removeNodeI], gLite[removeNodeI+1:]...)
-		}
-		if iteration == 0 || len(gLite[0].Edges) < len(minLiteEdges) {
-			minLiteEdges = make([]lite.Edge, len(gLite[0].Edges))
-			copy(minLiteEdges, gLite[0].Edges)
+			baseAllEdges = append(baseAllEdges, lite.Edge{Start: n, End: edge.end.index, S: g.nodes[n], E: edge})
 		}
 	}
 
-	minCut := make([]Edge, len(minLiteEdges))
-	for i := range minLiteEdges {
-		start := minLiteEdges[i].S.(*node)
-		end := minLiteEdges[i].E.(*node)
-		minCut[i] = Edge{Weight: g.edgeWeightBetween(start, end), Start: start.container, End: end.container, Kind: g.kind}
+	originalNodeCount := nodecount
+	allEdgesOnce := make([]lite.Edge, len(baseAllEdges))
+
+	var minCutLite []lite.Edge
+
+	// reuse lite edges as opposed to rebuild every iteration
+	for iter := 0; iter < iterations; iter++ {
+		nodecount = originalNodeCount
+		allEdges := allEdgesOnce
+		copy(allEdges, baseAllEdges)
+		shuffle(allEdges)
+		for nodecount > 2 {
+			// remove first edge, keep the start node, collapse the end node
+			// anything that points to the collapsing node now points to the keep node
+			// anything that starts at the collapsing node now starts at the keep node
+			keep := allEdges[len(allEdges)-1].Start
+			remove := allEdges[len(allEdges)-1].End // deleting this node
+			allEdges = allEdges[:len(allEdges)-1]
+			for e := 0; e < len(allEdges); e++ {
+				if allEdges[e].Start == remove {
+					allEdges[e].Start = keep
+				}
+				if allEdges[e].End == remove {
+					allEdges[e].End = keep
+				}
+				// remove the node if it self looped
+				if allEdges[e].Start == allEdges[e].End {
+					allEdges[e] = allEdges[len(allEdges)-1]
+					allEdges = allEdges[:len(allEdges)-1]
+					e--
+				}
+			}
+
+			nodecount--
+		}
+
+		if iter == 0 || len(allEdges) < len(minCutLite) {
+			minCutLite = make([]lite.Edge, len(allEdges))
+			copy(minCutLite, allEdges)
+		}
+	}
+
+	minCut := make([]Edge, len(minCutLite))
+	for i := range minCutLite {
+		start := minCutLite[i].S.(*node)
+		edge := minCutLite[i].E.(edge)
+		minCut[i] = Edge{Weight: edge.weight, Start: start.container, End: edge.end.container, Kind: g.kind}
 	}
 	return minCut
+}
+
+// Fischer-Yates shuffle
+func shuffle(edges []lite.Edge) {
+	for i := len(edges) - 1; i > 0; i-- {
+		j := rand.Intn(i)
+		edges[j], edges[i] = edges[i], edges[j]
+	}
 }
 
 // This function will return the edges corresponding to the
