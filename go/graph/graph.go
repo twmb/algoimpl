@@ -55,9 +55,6 @@ type edge struct {
 // An edge connects two Nodes in a graph. To modify the weight, use
 // the MakeEdgeWeight function. Any local modifications will
 // not be seen in the graph.
-//
-// In an undirected graph, the start of an edge and end of an edge
-// is represented once in the graph.
 type Edge struct {
 	Weight int
 	Start  Node
@@ -65,10 +62,9 @@ type Edge struct {
 	Kind   GraphType
 }
 
-// Creates and returns an empty graph. This function must be called before nodes can be connected.
+// Creates and returns an empty graph.
 // If kind is Directed, returns a directed graph.
-// If kind is Undirected, this function will return an undirected graph.
-// If kind is anything else, this function will return an undirected graph by default.
+// This function returns an undirected graph by default.
 func New(kind GraphType) *Graph {
 	g := &Graph{}
 	if kind == Directed {
