@@ -1,9 +1,11 @@
 package graph
 
 import (
+	"bitbucket.org/madmo/gosem"
 	"container/heap"
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -113,15 +115,24 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 // Otherwise, it returns a slice of the edges crossing the best minimum
 // cut found in any iteration.
 //
+// This function takes a number of iterations to start concurrently. If
+// concurrent is < 1, it will run only one iteration at a time.
+//
 // If the graph is Directed, this will return a cut of edges in both directions.
 // If the graph is Undirected, this will return a proper min cut.
-func (g *Graph) RandMinimumCut(iterations int) []Edge {
+func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
+	var mutex sync.Mutex
+	doneChan := make(chan bool)
+	if concurrent < 1 {
+		concurrent = 1
+	}
+	semaphore := gosem.NewSemaphore(concurrent)
 	// make a lite slice of the edges and shuffle for random edge removal order
 	rand.Seed(time.Now().Unix())
 	var baseAllEdges []lite.Edge
-	nodecount := 0
+	originalNodeCount := 0
 	for n := range g.nodes {
-		nodecount++
+		originalNodeCount++
 		for _, edge := range g.nodes[n].edges {
 			if g.kind == Undirected && n < edge.end.index {
 				continue
@@ -130,46 +141,53 @@ func (g *Graph) RandMinimumCut(iterations int) []Edge {
 		}
 	}
 
-	originalNodeCount := nodecount
-	allEdgesOnce := make([]lite.Edge, len(baseAllEdges))
-
 	var minCutLite []lite.Edge
 
 	// reuse lite edges as opposed to rebuild every iteration
 	for iter := 0; iter < iterations; iter++ {
-		nodecount = originalNodeCount
-		allEdges := allEdgesOnce
-		copy(allEdges, baseAllEdges)
-		shuffle(allEdges)
-		for nodecount > 2 {
-			// remove first edge, keep the start node, collapse the end node
-			// anything that points to the collapsing node now points to the keep node
-			// anything that starts at the collapsing node now starts at the keep node
-			keep := allEdges[len(allEdges)-1].Start
-			remove := allEdges[len(allEdges)-1].End // deleting this node
-			allEdges = allEdges[:len(allEdges)-1]
-			for e := 0; e < len(allEdges); e++ {
-				if allEdges[e].Start == remove {
-					allEdges[e].Start = keep
+		semaphore.Acquire()
+		go func() {
+			nodecount := originalNodeCount
+			allEdges := make([]lite.Edge, len(baseAllEdges))
+			copy(allEdges, baseAllEdges)
+			shuffle(allEdges)
+			for nodecount > 2 {
+				// remove first edge, keep the start node, collapse the end node
+				// anything that points to the collapsing node now points to the keep node
+				// anything that starts at the collapsing node now starts at the keep node
+				keep := allEdges[len(allEdges)-1].Start
+				remove := allEdges[len(allEdges)-1].End // deleting this node
+				allEdges = allEdges[:len(allEdges)-1]
+				for e := 0; e < len(allEdges); e++ {
+					if allEdges[e].Start == remove {
+						allEdges[e].Start = keep
+					}
+					if allEdges[e].End == remove {
+						allEdges[e].End = keep
+					}
+					// remove the node if it self looped
+					if allEdges[e].Start == allEdges[e].End {
+						allEdges[e] = allEdges[len(allEdges)-1]
+						allEdges = allEdges[:len(allEdges)-1]
+						e--
+					}
 				}
-				if allEdges[e].End == remove {
-					allEdges[e].End = keep
-				}
-				// remove the node if it self looped
-				if allEdges[e].Start == allEdges[e].End {
-					allEdges[e] = allEdges[len(allEdges)-1]
-					allEdges = allEdges[:len(allEdges)-1]
-					e--
-				}
+
+				nodecount--
 			}
 
-			nodecount--
-		}
-
-		if iter == 0 || len(allEdges) < len(minCutLite) {
-			minCutLite = make([]lite.Edge, len(allEdges))
-			copy(minCutLite, allEdges)
-		}
+			mutex.Lock()
+			if iter == 0 || len(allEdges) < len(minCutLite) {
+				minCutLite = make([]lite.Edge, len(allEdges))
+				copy(minCutLite, allEdges)
+			}
+			mutex.Unlock()
+			semaphore.Release()
+			doneChan <- true
+		}()
+	}
+	for iter := 0; iter < iterations; iter++ {
+		<-doneChan
 	}
 
 	minCut := make([]Edge, len(minCutLite))
