@@ -6,8 +6,8 @@ type Node struct {
 	Edges []Edge
 }
 type Edge struct {
-	End  int
-	S, E interface{}
+	Start, End int
+	S, E       interface{}
 }
 
 func NewGraph(size int) Graph {
