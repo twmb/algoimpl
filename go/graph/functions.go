@@ -5,7 +5,6 @@ import (
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
 	"sync"
-	"time"
 )
 
 const (
@@ -113,7 +112,7 @@ func (g *Graph) StronglyConnectedComponents() [][]Node {
 // RandMinimumCut runs Kargers algorithm to find a random minimum cut
 // on the graph. If iterations is < 1, this will return an empty slice.
 // Otherwise, it returns a slice of the edges crossing the best minimum
-// cut found in any iteration.
+// cut found in any iteration. Call rand.Seed() before using this function.
 //
 // This function takes a number of iterations to start concurrently. If
 // concurrent is <= 1, it will run one iteration at a time.
@@ -131,7 +130,6 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 		sem <- struct{}{}
 	}
 	// make a lite slice of the edges
-	rand.Seed(time.Now().Unix())
 	var baseAllEdges []lite.Edge
 	for n := range g.nodes {
 		for _, edge := range g.nodes[n].edges {
