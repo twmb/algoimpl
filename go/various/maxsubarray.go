@@ -68,3 +68,28 @@ func MaxSubarray(array []int, from, to int) (li, ri, sum int) {
 	}
 	return bli, bri + 1, bsum // here's right index is absolute, want one past
 }
+
+func MaxSubarray2(a []int) (max []int, sum int) {
+	if len(a) < 1 {
+		return a, 0
+	}
+	sum = a[0]
+	sumHere := sum
+	startMaxHere := 0
+	maxHere := a[:1]
+	max = maxHere
+	for i := 1; i < len(a); i = i + 1 {
+		if sumHere+a[i] < a[i] {
+			sumHere = a[i]
+			startMaxHere = i
+		} else {
+			sumHere += a[i]
+		}
+		maxHere = a[startMaxHere : i+1]
+		if sumHere > sum {
+			sum = sumHere
+			max = maxHere
+		}
+	}
+	return
+}
