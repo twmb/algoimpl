@@ -39,9 +39,11 @@ func (g *Graph) dfsReversedEdges(node *node, finishList *[]Node) {
 	*finishList = append(*finishList, node.container)
 }
 
-// Topologically sorts a directed acyclic graph.
+// TopologicalSort topoligically sorts a directed acyclic graph.
 // If the graph is cyclic, the sort order will change
-// based on which node the sort starts on. O(V+E) complexity.
+// based on which node the sort starts on.
+//
+// The StronglyConnectedComponents function can be used to determine if a graph has cycles.
 func (g *Graph) TopologicalSort() []Node {
 	sorted := make([]Node, 0, len(g.nodes))
 	// sort preorder (first jacket, then shirt)
@@ -58,7 +60,7 @@ func (g *Graph) TopologicalSort() []Node {
 	return sorted
 }
 
-// Returns reversed copy of the directed graph g. O(V+E) complexity.
+// Reverse returns reversed copy of the directed graph g.
 // This function can be used to copy an undirected graph.
 func (g *Graph) Reverse() *Graph {
 	reversed := New(Directed)
@@ -79,17 +81,8 @@ func (g *Graph) Reverse() *Graph {
 	return reversed
 }
 
-// Returns a slice of strongly connected nodes on a directed graph.
-// If passed an undirected graph, returns nil.
-// The returned components have reversed, nonexclusive edges.
-// For example, if this is passed the graph
-//     a->b, c
-//     b->a, c
-//     c
-// will return components
-//     [[c->a, b], [b->a], [a->b]]
-// where -> represents the edges that the node contains.
-// O(V+E) complexity.
+// StronglyConnectedComponents returns a slice of strongly connected nodes in a directed graph.
+// If used on an undirected graph, this function returns nil.
 func (g *Graph) StronglyConnectedComponents() [][]Node {
 	if g.kind == Undirected {
 		return nil
@@ -209,8 +202,8 @@ func shuffle(edges []lite.Edge) {
 	}
 }
 
-// This function will return the edges corresponding to the
-// minimum spanning tree in the graph based off of the edge's weight values.
+// MinimumSpanningTree will return the edges corresponding to the
+// minimum spanning tree in the graph based off of edge weight values.
 func (g *Graph) MinimumSpanningTree() []Edge {
 	// create priority queue for vertices
 	nodesBase := nodeSlice(make([]*node, 0))
