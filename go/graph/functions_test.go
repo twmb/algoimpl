@@ -95,6 +95,56 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	}
 }
 
+func TestMinimumSpanningTree(t *testing.T) {
+	g := New(Undirected)
+	nodes := make(map[string]Node, 0)
+	nodes["a"] = g.MakeNode()
+	nodes["b"] = g.MakeNode()
+	nodes["c"] = g.MakeNode()
+	nodes["d"] = g.MakeNode()
+	nodes["e"] = g.MakeNode()
+	nodes["f"] = g.MakeNode()
+	nodes["g"] = g.MakeNode()
+	nodes["h"] = g.MakeNode()
+	nodes["i"] = g.MakeNode()
+	for key, node := range nodes {
+		*node.Value = key
+	}
+	g.MakeEdgeWeight(nodes["a"], nodes["b"], 4)
+	g.MakeEdgeWeight(nodes["a"], nodes["h"], 8)
+	g.MakeEdgeWeight(nodes["b"], nodes["h"], 11)
+	g.MakeEdgeWeight(nodes["b"], nodes["c"], 8)
+	g.MakeEdgeWeight(nodes["c"], nodes["i"], 2)
+	g.MakeEdgeWeight(nodes["c"], nodes["f"], 4)
+	g.MakeEdgeWeight(nodes["c"], nodes["d"], 7)
+	g.MakeEdgeWeight(nodes["d"], nodes["e"], 9)
+	g.MakeEdgeWeight(nodes["d"], nodes["f"], 14)
+	g.MakeEdgeWeight(nodes["e"], nodes["f"], 10)
+	g.MakeEdgeWeight(nodes["f"], nodes["g"], 2)
+	g.MakeEdgeWeight(nodes["g"], nodes["h"], 1)
+	g.MakeEdgeWeight(nodes["g"], nodes["i"], 6)
+	g.MakeEdgeWeight(nodes["h"], nodes["i"], 7)
+	mst := g.MinimumSpanningTree()
+	mstNodes := make(map[Node]bool, 0)
+	spanCost := 0
+	for _, edge := range mst {
+		if _, exists := mstNodes[edge.Start]; !exists {
+			mstNodes[edge.Start] = true
+		}
+		if _, exists := mstNodes[edge.End]; !exists {
+			mstNodes[edge.End] = true
+		}
+		spanCost += edge.Weight
+	}
+	if len(mstNodes) != len(nodes) { // 9
+		t.Errorf("mst: # of nodes in MST is %v, expected %v", len(mstNodes), len(nodes))
+	}
+	if spanCost != 37 {
+		t.Errorf("mst: expected MST cost of 37, got %v", spanCost)
+	}
+
+}
+
 func componentContains(component []Node, node Node) bool {
 	for i := range component {
 		if component[i].node.index == node.node.index { // for SCC, the nodes will be reversed but the indices will be the same
