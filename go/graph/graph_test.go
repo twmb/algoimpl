@@ -13,6 +13,15 @@ func (g *Graph) edgeBack(from, to *node) bool {
 	return false
 }
 
+func (g *Graph) reversedEdgeBack(from, to *node) bool {
+	for _, v := range to.reversedEdges {
+		if v.end == from {
+			return true
+		}
+	}
+	return false
+}
+
 func nodeSliceContains(slice []Node, node Node) bool {
 	for i := range slice {
 		if slice[i].node == node.node { // used for exact node checking as opposed to functions_test componentContains
@@ -37,6 +46,12 @@ func (g *Graph) verify(t *testing.T) {
 			}
 			if g.nodes[edge.end.index] != edge.end {
 				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.end, edge, g.nodes[edge.end.index])
+			}
+			// if graph is undirected, check that the to node's reversed edges connects to the from edge
+			if g.kind == Directed {
+				if !g.reversedEdgeBack(node, edge.end) {
+					t.Errorf("directed graph: node %v has edge to %v, reversedEdges start at end does not have edge back to node", node, edge.end)
+				}
 			}
 			// if the graph is undirected, check that the adjacent node contains the original node back
 			if g.kind == Undirected {
@@ -201,6 +216,7 @@ func TestRemoveEdge(t *testing.T) {
 	g.verify(t)
 	g.RemoveEdge(nodes[1], nodes[1])
 	g.verify(t)
+
 	nodes = make([]Node, 10)
 	g = New(Directed)
 	for i := 0; i < 10; i++ {
