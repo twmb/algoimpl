@@ -204,7 +204,11 @@ func shuffle(edges []lite.Edge) {
 
 // MinimumSpanningTree will return the edges corresponding to the
 // minimum spanning tree in the graph based off of edge weight values.
+// This will return nil for a directed graph.
 func (g *Graph) MinimumSpanningTree() []Edge {
+	if g.kind == Directed {
+		return nil
+	}
 	// create priority queue for vertices
 	nodesBase := nodeSlice(make([]*node, 0))
 	nodes := &nodesBase
