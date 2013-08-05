@@ -64,7 +64,7 @@ func (g *Graph) TopologicalSort() []Node {
 // This function can be used to copy an undirected graph.
 func (g *Graph) Reverse() *Graph {
 	reversed := New(Directed)
-	if g.kind == Undirected {
+	if g.Kind == Undirected {
 		reversed = New(Undirected)
 	}
 	// O(V)
@@ -84,7 +84,7 @@ func (g *Graph) Reverse() *Graph {
 // StronglyConnectedComponents returns a slice of strongly connected nodes in a directed graph.
 // If used on an undirected graph, this function returns nil.
 func (g *Graph) StronglyConnectedComponents() [][]Node {
-	if g.kind == Undirected {
+	if g.Kind == Undirected {
 		return nil
 	}
 	components := make([][]Node, 0)
@@ -126,7 +126,7 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 	var baseAllEdges []lite.Edge
 	for n := range g.nodes {
 		for _, edge := range g.nodes[n].edges {
-			if g.kind == Undirected && n < edge.end.index {
+			if g.Kind == Undirected && n < edge.end.index {
 				continue
 			}
 			baseAllEdges = append(baseAllEdges, lite.Edge{Start: n,
@@ -189,7 +189,7 @@ func (g *Graph) RandMinimumCut(iterations, concurrent int) []Edge {
 		start := minCutLite[i].S.(*node)
 		edge := minCutLite[i].E.(edge)
 		minCut[i] = Edge{Weight: edge.weight, Start: start.container,
-			End: edge.end.container, Kind: g.kind}
+			End: edge.end.container}
 	}
 	return minCut
 }
@@ -206,7 +206,7 @@ func shuffle(edges []lite.Edge) {
 // minimum spanning tree in the graph based off of edge weight values.
 // This will return nil for a directed graph.
 func (g *Graph) MinimumSpanningTree() []Edge {
-	if g.kind == Directed {
+	if g.Kind == Directed {
 		return nil
 	}
 	// create priority queue for vertices
@@ -237,7 +237,7 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
 			mst = append(mst, Edge{Weight: g.edgeWeightBetween(g.nodes[i], g.nodes[i].parent),
-				Start: g.nodes[i].container, End: g.nodes[i].parent.container, Kind: g.kind})
+				Start: g.nodes[i].container, End: g.nodes[i].parent.container})
 		}
 	}
 

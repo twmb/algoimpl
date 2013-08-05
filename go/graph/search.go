@@ -47,7 +47,7 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 			newPath.Path = make([]Edge, len(paths[curNode.parent.index].Path)+1)
 			copy(newPath.Path, paths[curNode.parent.index].Path)
 			newPath.Path[len(newPath.Path)-1] = Edge{Weight: curNode.state - curNode.parent.state,
-				Start: curNode.parent.container, End: curNode.container, Kind: Directed}
+				Start: curNode.parent.container, End: curNode.container}
 			paths[curNode.index] = newPath
 		} else {
 			paths[curNode.index] = Path{Weight: curNode.state, Path: []Edge{}}

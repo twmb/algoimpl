@@ -17,7 +17,7 @@ const (
 // Graph is an adjacency slice representation of a graph. Can be directed or undirected.
 type Graph struct {
 	nodes []*node
-	kind  GraphType // 1 for directed, 0 otherwise
+	Kind  GraphType
 }
 
 type node struct {
@@ -59,7 +59,6 @@ type Edge struct {
 	Weight int
 	Start  Node
 	End    Node
-	Kind   GraphType
 }
 
 // New creates and returns an empty graph.
@@ -68,7 +67,7 @@ type Edge struct {
 func New(kind GraphType) *Graph {
 	g := &Graph{}
 	if kind == Directed {
-		g.kind = Directed
+		g.Kind = Directed
 	}
 	return g
 }
@@ -154,7 +153,7 @@ func (g *Graph) MakeEdgeWeight(from, to Node, weight int) error {
 			from.node.edges[i].weight = weight
 
 			// If the graph is undirected, fix the to node's weight as well
-			if g.kind == Undirected && to != from {
+			if g.Kind == Undirected && to != from {
 				for j := range to.node.edges {
 					if to.node.edges[j].end == from.node {
 						to.node.edges[j].weight = weight
@@ -167,10 +166,10 @@ func (g *Graph) MakeEdgeWeight(from, to Node, weight int) error {
 	newEdge := edge{weight: weight, end: to.node}
 	from.node.edges = append(from.node.edges, newEdge)
 	reversedEdge := edge{weight: weight, end: from.node} // weight for undirected graph only
-	if g.kind == Directed {                              // reversed edges are only used in directed graph algorithms
+	if g.Kind == Directed {                              // reversed edges are only used in directed graph algorithms
 		to.node.reversedEdges = append(to.node.reversedEdges, reversedEdge)
 	}
-	if g.kind == Undirected && to != from {
+	if g.Kind == Undirected && to != from {
 		to.node.edges = append(to.node.edges, reversedEdge)
 	}
 	return nil
@@ -196,7 +195,7 @@ func (g *Graph) RemoveEdge(from, to Node) {
 			break
 		}
 	}
-	if g.kind == Undirected && from.node != to.node {
+	if g.Kind == Undirected && from.node != to.node {
 		for e := range toEdges {
 			if toEdges[e].end == from.node {
 				swapNRemoveEdge(e, &toEdges)

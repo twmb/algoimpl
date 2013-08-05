@@ -48,13 +48,13 @@ func (g *Graph) verify(t *testing.T) {
 				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.end, edge, g.nodes[edge.end.index])
 			}
 			// if graph is undirected, check that the to node's reversed edges connects to the from edge
-			if g.kind == Directed {
+			if g.Kind == Directed {
 				if !g.reversedEdgeBack(node, edge.end) {
 					t.Errorf("directed graph: node %v has edge to %v, reversedEdges start at end does not have edge back to node", node, edge.end)
 				}
 			}
 			// if the graph is undirected, check that the adjacent node contains the original node back
-			if g.kind == Undirected {
+			if g.Kind == Undirected {
 				if !g.edgeBack(edge.end, node) {
 					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node, edge.end)
 				}
@@ -75,7 +75,7 @@ func TestNew(t *testing.T) {
 
 	for _, test := range tests {
 		got := New(test.InKind)
-		if got.kind != test.WantKind {
+		if got.Kind != test.WantKind {
 			t.Errorf("Received wrong kind of graph")
 		}
 		if len(got.nodes) > 0 {
