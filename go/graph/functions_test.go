@@ -4,6 +4,8 @@ import (
 	"testing"
 )
 
+// RandMinimumCut has been tested in practice (Coursera Algo course 1). If any bugs crop up, email me.
+
 func TestTopologicalSort(t *testing.T) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
