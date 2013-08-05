@@ -9,9 +9,9 @@ type Path struct {
 	Path   []Edge
 }
 
-// DijkstraSearch returns the shortest path to every other node in the graph.
-// All edges must have a positive weight, otherwise this function will return
-// nil.
+// DijkstraSearch returns the shortest path from the start node to every other
+// node in the graph. All edges must have a positive weight, otherwise this
+// function will return nil.
 func (g *Graph) DijkstraSearch(start Node) []Path {
 	paths := make([]Path, len(g.nodes))
 
@@ -31,6 +31,9 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 		curNode := heap.Pop(nodes).(*node)
 		for _, edge := range curNode.edges {
 			newWeight := curNode.state + edge.weight
+			if newWeight < curNode.state { // negative edge length
+				return nil
+			}
 			v := edge.end
 			if nodes.QueueContains(v) && newWeight < (v.state & ^queued) {
 				v.parent = curNode
@@ -39,6 +42,7 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 				heap.Push(nodes, v)
 			}
 		}
+
 		// build path to this node
 		if curNode.parent != nil {
 			newPath := Path{Weight: curNode.state}
