@@ -18,12 +18,10 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 	nodesBase := nodeSlice(make([]*node, len(g.nodes)))
 	copy(nodesBase, g.nodes)
 	for i := range nodesBase {
-		nodesBase[i].state = 2<<30 - 1
-		nodesBase[i].state |= queued
+		nodesBase[i].state = 1<<31 - 1
 		nodesBase[i].data = i
 	}
 	start.node.state = 0 // make it so 'start' sorts to the top of the heap
-	start.node.state |= queued
 	nodes := &nodesBase
 	heap.Init(nodes)
 
@@ -35,10 +33,10 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 				return nil
 			}
 			v := edge.end
-			if nodes.QueueContains(v) && newWeight < (v.state & ^queued) {
+			if nodes.HeapContains(v) && newWeight < v.state {
 				v.parent = curNode
 				heap.Remove(nodes, v.data)
-				v.state = newWeight | queued
+				v.state = newWeight
 				heap.Push(nodes, v)
 			}
 		}

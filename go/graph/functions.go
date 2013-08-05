@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	unseen = iota
+	dequeued = -1 + iota
+	unseen
 	seen
-	queued = 1 << 30 // assume that no weight will be > 2^30
 )
 
 // O(V + E). It does not matter to traverse back
@@ -210,26 +210,25 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		return nil
 	}
 	// create priority queue for vertices
-	nodesBase := nodeSlice(make([]*node, 0))
+	nodesBase := nodeSlice(make([]*node, len(g.nodes)))
+	copy(nodesBase, g.nodes)
+	for i := range nodesBase {
+		nodesBase[i].state = 1<<31 - 1
+		nodesBase[i].data = i
+	}
+	nodesBase[0].state = 0
 	nodes := &nodesBase
 	heap.Init(nodes)
-	for _, node := range g.nodes[1:] {
-		node.state = 1<<30 - 1 // bit 31 is for queue testing
-		node.state |= queued
-		heap.Push(nodes, node)
-	}
-	g.nodes[0].state = 0
-	heap.Push(nodes, g.nodes[0]) // now add root element
 
 	for nodes.Len() > 0 {
 		min := heap.Pop(nodes).(*node)
 		for _, edge := range min.edges {
 			v := edge.end // get the other side of the edge
-			if nodes.QueueContains(v) && edge.weight < (v.state & ^queued) {
+			if nodes.HeapContains(v) && edge.weight < v.state {
 				v.parent = min
-				heap.Remove(nodes, v.data)     // remove it
-				v.state = edge.weight | queued // update state, add queue bit
-				heap.Push(nodes, v)            // add it back in, WORD, O(lg n) update key time!
+				heap.Remove(nodes, v.data) // remove it
+				v.state = edge.weight      // update state
+				heap.Push(nodes, v)        // add it back in, WORD, O(lg n) update key time!
 			}
 		}
 	}
@@ -266,7 +265,7 @@ func (n *nodeSlice) Push(x interface{}) {
 }
 func (n *nodeSlice) Pop() interface{} {
 	rNode := (*n)[len(*n)-1]
-	rNode.state &= ^queued
+	rNode.data = -1
 	*n = (*n)[0 : len(*n)-1]
 	return rNode
 }
@@ -274,12 +273,12 @@ func (n nodeSlice) Len() int {
 	return len(n)
 }
 func (n nodeSlice) Less(i, j int) bool {
-	return n[i].state & ^queued < n[j].state & ^queued
+	return n[i].state < n[j].state
 }
 func (n nodeSlice) Swap(i, j int) {
 	n[j].data, n[i].data = n[i].data, n[j].data // swap data containing indices
 	n[j], n[i] = n[i], n[j]
 }
-func (n nodeSlice) QueueContains(node *node) bool { // extend heap interface
-	return node.state&queued > 0
+func (n nodeSlice) HeapContains(node *node) bool { // extend heap interface
+	return node.data > dequeued
 }
