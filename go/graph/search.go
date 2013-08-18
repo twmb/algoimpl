@@ -13,6 +13,9 @@ type Path struct {
 // node in the graph. All edges must have a positive weight, otherwise this
 // function will return nil.
 func (g *Graph) DijkstraSearch(start Node) []Path {
+	if start.node == nil || g.nodes[start.node.index] != start.node {
+		return nil
+	}
 	paths := make([]Path, len(g.nodes))
 
 	nodesBase := nodeSlice(make([]*node, len(g.nodes)))
