@@ -45,13 +45,13 @@ void set_heap_popfunc(Heap h, void *(*pop)(void*)) {
   h->pop = pop;
 }
 
-static int parent(int i) {
+static inline int parent(int i) {
   return (i - 1) / 2;
 }
-static int lchild(int i) {
+static inline int lchild(int i) {
   return i * 2 + 1;
 }
-static int rchild(int i) {
+static inline int rchild(int i) {
   return i * 2 + 2;
 }
 
