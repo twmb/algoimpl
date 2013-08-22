@@ -18,7 +18,6 @@ static void swap(int *left, int *right) {
 // http://golang.org/src/pkg/sort/sort.go?s=4433:4458#L182
 static int median_of_three_ints(int *array, int len) {
   len--;
-  bool swapped = false;
   int indices[3] = {0, len/2, len};
   int small = array[0], large = array[len/2], final = array[len];
   if (small > large) {
