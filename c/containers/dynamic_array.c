@@ -13,7 +13,7 @@ struct dynamic_array {
   int *slicecount;
   
   pthread_mutexattr_t mutexattr;
-  pthread_mutex_t mutex;
+  pthread_mutex_t mutex; // uesd to update slicecount
 };
 
 dynarr *create_dynarr(void) {
@@ -69,6 +69,11 @@ void destroy_dynarr(dynarr *array) {
 }
 
 void *dynarr_append(dynarr *array, void *element) {
+  // Appending should only free the previous elements pointer
+  // if no other slices currently contain those elements.
+  // Hence, appending will never free anything that has slices of it.
+  // However, if the array does need to allocate a larger capacity,
+  // it will no longer belong to any previous slices.
   if (array->cap == 0) {
     void **new_array = malloc(sizeof(void*));
     if (*array->slicecount > 0) {
@@ -122,6 +127,9 @@ dynarr *dynarr_slice(dynarr *array, int from, int to) {
   }
   dynarr *new = malloc(sizeof(dynarr));
   new->elements = &array->elements[from];
+  // Elements start is needed if the original array is destroyed
+  // before this new one. Otherwise, will not know where the original
+  // elements began.
   new->elements_start = array->elements_start;
   new->len = to-from;
   new->cap = array->cap-from;
