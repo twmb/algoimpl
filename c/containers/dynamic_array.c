@@ -1,5 +1,6 @@
 #include <stdlib.h> 
-//#include <pthread.h>
+#include <string.h>
+#include <pthread.h>
 
 #include "dynamic_array.h"
 
@@ -8,24 +9,30 @@ struct dynamic_array {
   int len;
   int cap;
 
-//  int *slicecount;
-//  
-//  pthread_mutexattr_t attr;
-//  pthread_mutex_t mutex;
+  void **elements_start; // points to original starting position after a slice
+  int *slicecount;
+  
+  pthread_mutexattr_t mutexattr;
+  pthread_mutex_t mutex;
 };
 
-dynarr create_dynarr(void) {
-  dynarr r = malloc(sizeof(dynarr));
+dynarr *create_dynarr(void) {
+  dynarr *r = malloc(sizeof(dynarr));
   r->len = 0;
   r->cap = 0;
+
+  r->elements = malloc(0);
+
+  r->slicecount = malloc(sizeof(int));
+  *r->slicecount = 0;
   
-//  pthread_mutexattr_init(&r->attr);
-//  pthread_mutex_init(&r->mutex, &r->attr);
+  pthread_mutexattr_init(&r->mutexattr);
+  pthread_mutex_init(&r->mutex, &r->mutexattr);
   return r;
 }
 
-dynarr make_dynarr(int len, int cap) {
-  dynarr r = malloc(sizeof(dynarr));
+dynarr *make_dynarr(int len, int cap) {
+  dynarr *r = malloc(sizeof(dynarr));
   if (len < 0) {
     exit(-1);
   }
@@ -34,33 +41,74 @@ dynarr make_dynarr(int len, int cap) {
   }
   r->len = len;
   r->cap = cap;
-  if (cap > 0) {
-    r->elements = malloc(cap * sizeof(void*));
-  }
+  r->elements = malloc(cap * sizeof(void*));
+  r->elements_start = r->elements;
+
+  r->slicecount = malloc(sizeof(int));
+  *r->slicecount = 0;
+  
+  pthread_mutexattr_init(&r->mutexattr);
+  pthread_mutex_init(&r->mutex, &r->mutexattr);
   return r;
 }
 
-void destroy_dynarr(dynarr array) {
-  // pthread_mutex_lock(&array->mutex);
-  // if 
-  free(array->elements);
-  free(array);
+void destroy_dynarr(dynarr *array) {
+  pthread_mutex_lock(&array->mutex);
+  if (*array->slicecount == 0) {
+    free(array->slicecount);
+    free(array->elements_start);
+    pthread_mutex_unlock(&array->mutex);
+    pthread_mutexattr_destroy(&array->mutexattr);
+    pthread_mutex_destroy(&array->mutex);
+    free(array);
+  } else {
+    (*array->slicecount)--;
+    pthread_mutex_unlock(&array->mutex);
+    free(array);
+  }
 }
 
-void *dynarr_append(dynarr array, void *element) {
+void *dynarr_append(dynarr *array, void *element) {
   if (array->cap == 0) {
-    array->elements = malloc(sizeof(void*));
+    void **new_array = malloc(sizeof(void*));
+    if (*array->slicecount > 0) {
+      pthread_mutex_lock(&array->mutex);
+      (*array->slicecount)--;
+      pthread_mutex_lock(&array->mutex);
+      array->slicecount = malloc(sizeof(int));
+      *array->slicecount = 0;
+    } else {
+      free(array->elements);
+    }
+    array->elements = new_array;
+    array->elements_start = array->elements;
     array->cap = 1;
   }
+
   if (array->len == array->cap) {
-    if (array->cap > 1000) {
-      array->elements = realloc(array->elements, (int)(sizeof(void*) * 1.2 * array->cap));
+    void **new_array;
+    if (array->cap > 1000)  {
+      new_array = malloc(sizeof(void*) * 1.2 * array->cap);
       array->cap = (int)(array->cap * 1.2);
+
     } else {
-      array->elements = realloc(array->elements, sizeof(void*) * 2 * array->cap);
+      new_array = malloc(sizeof(void*) * 2 * array->cap);
       array->cap *= 2;
     }
+    memcpy(new_array, array->elements, sizeof(void*) * array->len);
+    if (*array->slicecount > 0) {
+      pthread_mutex_lock(&array->mutex);
+      (*array->slicecount)--;
+      pthread_mutex_unlock(&array->mutex);
+      array->slicecount = malloc(sizeof(int));
+      *array->slicecount = 0;
+    } else {
+      free(array->elements);
+    }
+    array->elements = new_array;
+    array->elements_start = array->elements;
   }
+
   if (array->elements != NULL) {
     array->elements[array->len] = element;
   }
@@ -68,25 +116,32 @@ void *dynarr_append(dynarr array, void *element) {
   return array->elements;
 }
 
-dynarr dynarr_slice(dynarr array, int from, int to) {
+dynarr *dynarr_slice(dynarr *array, int from, int to) {
   if (to > array->len) {
     exit(1);
   }
-  dynarr new = create_dynarr();
+  dynarr *new = malloc(sizeof(dynarr));
   new->elements = &array->elements[from];
+  new->elements_start = array->elements_start;
   new->len = to-from;
   new->cap = array->cap-from;
+  new->slicecount = array->slicecount;
+  new->mutexattr = array->mutexattr;
+  new->mutex = array->mutex;
+  pthread_mutex_lock(&array->mutex);
+  (*array->slicecount)++;
+  pthread_mutex_unlock(&array->mutex);
   return new;
 }
 
-void *dynarr_at(dynarr array, int position) {
+void *dynarr_at(dynarr *array, int position) {
   return array->elements[position];
 }
 
-void dynarr_set(dynarr array, int position, void *element) {
+void dynarr_set(dynarr *array, int position, void *element) {
   array->elements[position] = element;
 }
 
-int dynarr_len(dynarr array) {
+int dynarr_len(dynarr *array) {
   return array->len;
 }
