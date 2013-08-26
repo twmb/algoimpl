@@ -22,28 +22,29 @@ void ints_swap(void *container, int left, int right) {
 }
 // ******* functions for dynamic array ********
 bool dynarr_less(void *container, int left, int right) {
-  dynarr *d = container;
+  dynarr **d = container;
   return dynarr_at(*d, left) < dynarr_at(*d, right);
 }
 int dynarr_lenfunc(void *container) {
-  return dynarr_len(*(dynarr *)container);
+  return dynarr_len(*(dynarr **)container);
 }
 void dynarr_swap(void *container, int left, int right) {
   if (left != right) {
-    dynarr *d = container;
+    dynarr **d = container;
     dynarr_set(*d, left, (void *)((int64_t)dynarr_at(*d, left) ^ (int64_t)dynarr_at(*d, right)));
     dynarr_set(*d, right,(void *)((int64_t)dynarr_at(*d, left) ^ (int64_t)dynarr_at(*d, right)));
     dynarr_set(*d, left, (void *)((int64_t)dynarr_at(*d, left) ^ (int64_t)dynarr_at(*d, right)));
   }
 }
 void dynarr_push(void *d, void *elem) {
-  dynarr_append(*(dynarr *)d, elem);
+  dynarr_append(*(dynarr **)d, elem);
 }
 void *dynarr_pop(void *container) {
-  dynarr *d = container;
+  dynarr **d = container;
   void *end = dynarr_at(*d, dynarr_len(*d) - 1);
-  *d = dynarr_slice(*d, 0, dynarr_len(*d) - 1);
-  
+  dynarr *n = dynarr_slice(*d, 0, dynarr_len(*d) - 1);
+  destroy_dynarr(*d);
+  *d = n;
   return end;
 }
 // ******* ********* *** ******* ***** ********
@@ -86,7 +87,7 @@ int check_valid_intheap(int *array, int current, int len) {
   return rval;
 }
 
-int check_valid_dynarr_heap(dynarr d, int current, int len) {
+int check_valid_dynarr_heap(dynarr *d, int current, int len) {
   int rval = 0;
   int lc = lchild(current);
   int rc = rchild(current);
@@ -217,7 +218,7 @@ int test_shuffleDown(void) {
 }
 
 int test_heap_push(void) {
-  dynarr d = create_dynarr();
+  dynarr *d = create_dynarr();
   set_heap_container(myheap, &d);
   for (int64_t i = 0; i < 20; i++) {
     heap_push(myheap, (void *)i);
@@ -229,7 +230,7 @@ int test_heap_push(void) {
 
 int test_heap_pop(void) {
   int rval = 0;
-  dynarr d = create_dynarr();
+  dynarr *d = create_dynarr();
   set_heap_container(myheap, &d);
   for (int64_t i = 0; i < 20; i++) {
     heap_push(myheap, (void *)i);
@@ -248,7 +249,7 @@ int test_heap_pop(void) {
 
 int test_heap_delete(void) {
   int rval = 0;
-  dynarr d = create_dynarr();
+  dynarr *d = create_dynarr();
   set_heap_container(myheap, &d);
   for (int64_t i = 0; i < 20; i++) {
     heap_push(myheap, (void *)i);
@@ -267,7 +268,7 @@ int test_heap_delete(void) {
 
 int test_heapify(void) {
   int rval = 0;
-  dynarr d = create_dynarr();
+  dynarr *d = create_dynarr();
   set_heap_container(myheap, &d);
   for (int64_t i = 0; i < 20; i++) {
     dynarr_append(d, (void *)i);
