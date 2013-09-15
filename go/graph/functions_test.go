@@ -7,6 +7,7 @@ import (
 // RandMinimumCut has been tested in practice (Coursera Algo course 1). If any bugs crop up, email me.
 
 func TestTopologicalSort(t *testing.T) {
+	currentFunction = "TopologicalSort"
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create graph on page 613 of CLRS ed. 3
@@ -48,6 +49,7 @@ func TestTopologicalSort(t *testing.T) {
 }
 
 func TestStronglyConnectedComponents(t *testing.T) {
+	currentFunction = "StronglyConnectedComponents"
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
