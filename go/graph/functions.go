@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	dequeued = -1 + iota
-	unseen
-	seen
+	dequeued = ^(1<<31 - 1)
+	unseen   = 0
+	seen     = 1
 )
 
 // O(V + E). It does not matter to traverse back
@@ -233,22 +233,10 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	mst := make([]Edge, 0)
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
-			mst = append(mst, Edge{Weight: g.edgeWeightBetween(g.nodes[i], g.nodes[i].parent),
+			mst = append(mst, Edge{Weight: g.nodes[i].state,
 				Start: g.nodes[i].container, End: g.nodes[i].parent.container})
 		}
 	}
 
 	return mst
-}
-
-// only called when the graph is guaranteed to have an edge
-// between the two nodes
-func (g *Graph) edgeWeightBetween(v, u *node) int {
-	for _, edge := range u.edges {
-		// one of the two is always u
-		if edge.end == v {
-			return edge.weight
-		}
-	}
-	return 0
 }
