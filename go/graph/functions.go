@@ -244,5 +244,11 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 // only called when the graph is guaranteed to have an edge
 // between the two nodes
 func (g *Graph) edgeWeightBetween(v, u *node) int {
-	return v.edges[u.index].weight
+	for _, edge := range u.edges {
+		// one of the two is always u
+		if edge.end == v {
+			return edge.weight
+		}
+	}
+	return 0
 }

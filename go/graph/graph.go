@@ -21,8 +21,8 @@ type Graph struct {
 }
 
 type node struct {
-	edges         map[int]edge
-	reversedEdges map[int]edge
+	edges         []edge
+	reversedEdges []edge
 	index         int
 	state         int   // used for metadata
 	data          int   // also used for metadata
@@ -75,8 +75,6 @@ func New(kind GraphType) *Graph {
 // MakeNode creates a node, adds it to the graph and returns the new node.
 func (g *Graph) MakeNode() Node {
 	newNode := &node{index: len(g.nodes)}
-	newNode.edges = make(map[int]edge)
-	newNode.reversedEdges = make(map[int]edge)
 	newNode.container = Node{node: newNode, Value: new(interface{})}
 	g.nodes = append(g.nodes, newNode)
 	return newNode.container
@@ -86,47 +84,47 @@ func (g *Graph) MakeNode() Node {
 // This function nils points in the Node structure. If 'remove' is used in
 // a map, you must delete the map index first.
 func (g *Graph) RemoveNode(remove *Node) {
-	if remove.node == nil ||
-		remove.node.index >= len(g.nodes) ||
-		g.nodes[remove.node.index] != remove.node {
+	if remove.node == nil {
 		return
 	}
+	// O(V)
+	nodeExists := false
 	// remove all edges that connect from a different node to this one
 	for _, node := range g.nodes {
 		if node == remove.node {
+			nodeExists = true
 			continue
 		}
 
-		delete(node.edges, remove.node.index)
-		delete(node.reversedEdges, remove.node.index)
-
-		updatedEdges := make(map[int]edge)
-		for key, edge := range node.edges {
-			if key > remove.node.index {
-				updatedEdges[key-1] = edge
-			} else {
-				updatedEdges[key] = edge
+		// O(E)
+		swapIndex := -1 // index that the edge-to-remove is at
+		for i := range node.edges {
+			if node.edges[i].end == remove.node {
+				swapIndex = i
 			}
 		}
-		node.edges = updatedEdges
+		if swapIndex > -1 {
+			swapNRemoveEdge(swapIndex, &node.edges)
+		}
 
-		updatedReversedEdges := make(map[int]edge)
-		for key, edge := range node.reversedEdges {
-			if key > remove.node.index {
-				delete(node.reversedEdges, key)
-				updatedReversedEdges[key-1] = edge
-			} else {
-				updatedReversedEdges[key] = edge
+		// deal with possible reversed edge
+		swapIndex = -1
+		for i := range node.reversedEdges {
+			if node.reversedEdges[i].end == remove.node {
+				swapIndex = i
 			}
 		}
-		node.reversedEdges = updatedReversedEdges
-
+		if swapIndex > -1 {
+			swapNRemoveEdge(swapIndex, &node.reversedEdges)
+		}
 		if node.index > remove.node.index {
 			node.index--
 		}
 	}
-	copy(g.nodes[remove.node.index:], g.nodes[remove.node.index+1:])
-	g.nodes = g.nodes[:len(g.nodes)-1]
+	if nodeExists {
+		copy(g.nodes[remove.node.index:], g.nodes[remove.node.index+1:])
+		g.nodes = g.nodes[:len(g.nodes)-1]
+	}
 	remove.node.parent = nil
 	remove.node = nil
 }
@@ -150,31 +148,29 @@ func (g *Graph) MakeEdgeWeight(from, to Node, weight int) error {
 		return errors.New("Second node in MakeEdge call does not belong to this graph")
 	}
 
-	if from.node == to.node {
-		return nil
-	}
+	for i := range from.node.edges { // check if edge already exists
+		if from.node.edges[i].end == to.node {
+			from.node.edges[i].weight = weight
 
-	if e1, exists := from.node.edges[to.node.index]; exists {
-		e1.weight = weight
-		from.node.edges[to.node.index] = e1
-
-		// If the graph is undirected, fix the to node's weight as well
-		if g.Kind == Undirected && to != from {
-			if e2, exists := to.node.edges[from.node.index]; exists {
-				e2.weight = weight
-				to.node.edges[from.node.index] = e2
+			// If the graph is undirected, fix the to node's weight as well
+			if g.Kind == Undirected && to != from {
+				for j := range to.node.edges {
+					if to.node.edges[j].end == from.node {
+						to.node.edges[j].weight = weight
+					}
+				}
 			}
+			return nil
 		}
-		return nil
 	}
 	newEdge := edge{weight: weight, end: to.node}
-	from.node.edges[to.node.index] = newEdge
+	from.node.edges = append(from.node.edges, newEdge)
 	reversedEdge := edge{weight: weight, end: from.node} // weight for undirected graph only
 	if g.Kind == Directed {                              // reversed edges are only used in directed graph algorithms
-		to.node.reversedEdges[from.node.index] = reversedEdge
+		to.node.reversedEdges = append(to.node.reversedEdges, reversedEdge)
 	}
 	if g.Kind == Undirected && to != from {
-		to.node.edges[from.node.index] = reversedEdge
+		to.node.edges = append(to.node.edges, reversedEdge)
 	}
 	return nil
 }
@@ -182,10 +178,31 @@ func (g *Graph) MakeEdgeWeight(from, to Node, weight int) error {
 // RemoveEdge removes edges starting at the from node and ending at the to node.
 // If the graph is undirected, RemoveEdge will remove all edges between the nodes.
 func (g *Graph) RemoveEdge(from, to Node) {
-	delete(from.node.edges, to.node.index)
-	delete(to.node.reversedEdges, from.node.index)
+	fromEdges := from.node.edges
+	toEdges := to.node.edges
+	toReversedEdges := to.node.reversedEdges
+	for e := range fromEdges { // fix from->to
+		if fromEdges[e].end == to.node {
+			swapNRemoveEdge(e, &fromEdges)
+			from.node.edges = fromEdges
+			break
+		}
+	}
+	for e := range toReversedEdges { // fix reversed edges to->from
+		if toReversedEdges[e].end == from.node {
+			swapNRemoveEdge(e, &toReversedEdges)
+			to.node.reversedEdges = toReversedEdges
+			break
+		}
+	}
 	if g.Kind == Undirected && from.node != to.node {
-		delete(to.node.edges, from.node.index)
+		for e := range toEdges {
+			if toEdges[e].end == from.node {
+				swapNRemoveEdge(e, &toEdges)
+				to.node.edges = toEdges
+				break
+			}
+		}
 	}
 }
 
@@ -198,4 +215,10 @@ func (g *Graph) Neighbors(n Node) []Node {
 		}
 	}
 	return neighbors
+}
+
+// Swaps an edge to the end of the edges slice and 'removes' it by reslicing.
+func swapNRemoveEdge(remove int, edges *[]edge) {
+	(*edges)[remove], (*edges)[len(*edges)-1] = (*edges)[len(*edges)-1], (*edges)[remove]
+	*edges = (*edges)[:len(*edges)-1]
 }

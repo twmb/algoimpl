@@ -31,31 +31,32 @@ func nodeSliceContains(slice []Node, node Node) bool {
 	return false
 }
 
-var currentFunction string
-
 func (g *Graph) verify(t *testing.T) {
 	// over all the nodes
 	for i, node := range g.nodes {
 		if node.index != i {
-			t.Errorf(currentFunction+": node's graph index %v != actual graph index %v", node.index, i)
+			t.Errorf("node's graph index %v != actual graph index %v", node.index, i)
 		}
 		// over each edge
 		for _, edge := range node.edges {
 
 			// check that the graph contains it in the correct position
 			if edge.end.index >= len(g.nodes) {
-				t.Errorf(currentFunction+": start node %v, adjacent node end graph index %v >= len(g.nodes) %v", node.index, edge.end.index, len(g.nodes))
-			} else if g.nodes[edge.end.index] != edge.end {
-				t.Errorf(currentFunction+": adjacent node %v does not belong to the graph on edge %v: should be %v", edge.end.index, edge, g.nodes[edge.end.index].index)
+				t.Errorf("adjacent node end graph index %v >= len(g.nodes)%v", edge.end.index, len(g.nodes))
+			}
+			if g.nodes[edge.end.index] != edge.end {
+				t.Errorf("adjacent node %p does not belong to the graph on edge %v: should be %p", edge.end, edge, g.nodes[edge.end.index])
 			}
 			// if graph is undirected, check that the to node's reversed edges connects to the from edge
 			if g.Kind == Directed {
 				if !g.reversedEdgeBack(node, edge.end) {
-					t.Errorf(currentFunction+": directed graph: node %v has edge to %v, reversedEdges start at end does not have edge back to node", node.index, edge.end.index)
+					t.Errorf("directed graph: node %v has edge to %v, reversedEdges start at end does not have edge back to node", node, edge.end)
 				}
-			} else if g.Kind == Undirected { // if the graph is undirected, check that the adjacent node contains the original node back
+			}
+			// if the graph is undirected, check that the adjacent node contains the original node back
+			if g.Kind == Undirected {
 				if !g.edgeBack(edge.end, node) {
-					t.Errorf(currentFunction+": undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node.index, edge.end.index)
+					t.Errorf("undirected graph: node %v has adjacent node %v, adjacent node doesn't contain back", node, edge.end)
 				}
 			}
 		}
@@ -84,7 +85,6 @@ func TestNew(t *testing.T) {
 }
 
 func TestMakeNode(t *testing.T) {
-	currentFunction = "MakeNode"
 	graph := New(Undirected)
 	nodes := make(map[Node]int, 0)
 	for i := 0; i < 10; i++ {
@@ -100,7 +100,6 @@ func TestMakeNode(t *testing.T) {
 }
 
 func TestRemoveNode(t *testing.T) {
-	currentFunction = "RemoveNode"
 	g := New(Undirected)
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
@@ -162,7 +161,6 @@ func TestRemoveNode(t *testing.T) {
 }
 
 func TestMakeEdge(t *testing.T) {
-	currentFunction = "MakeEdge"
 	graph := New(Undirected)
 	mapped := make(map[int]Node, 0)
 	for i := 0; i < 10; i++ {
@@ -203,7 +201,6 @@ func TestMakeEdge(t *testing.T) {
 }
 
 func TestRemoveEdge(t *testing.T) {
-	currentFunction = "RemoveEdge"
 	g := New(Undirected)
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
@@ -263,7 +260,6 @@ func TestRemoveEdge(t *testing.T) {
 }
 
 func TestNeighbors(t *testing.T) {
-	currentFunction = "Neighbors"
 	g := New(Undirected)
 	nodes := make([]Node, 2)
 	nodes[0] = g.MakeNode()
