@@ -1,9 +1,5 @@
 package graph
 
-import (
-	"container/heap"
-)
-
 type Path struct {
 	Weight int
 	Path   []Edge
@@ -26,21 +22,19 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 	}
 	start.node.state = 0 // make it so 'start' sorts to the top of the heap
 	nodes := &nodesBase
-	heap.Init(nodes)
+	nodes.heapInit()
 
-	for nodes.Len() > 0 {
-		curNode := heap.Pop(nodes).(*node)
+	for len(*nodes) > 0 {
+		curNode := nodes.pop()
 		for _, edge := range curNode.edges {
 			newWeight := curNode.state + edge.weight
 			if newWeight < curNode.state { // negative edge length
 				return nil
 			}
 			v := edge.end
-			if nodes.HeapContains(v) && newWeight < v.state {
+			if nodes.heapContains(v) && newWeight < v.state {
 				v.parent = curNode
-				heap.Remove(nodes, v.data)
-				v.state = newWeight
-				heap.Push(nodes, v)
+				nodes.update(v.data, newWeight)
 			}
 		}
 

@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"container/heap"
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
 	"sync"
@@ -218,17 +217,15 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 	}
 	nodesBase[0].state = 0
 	nodes := &nodesBase
-	heap.Init(nodes)
+	nodes.heapInit()
 
-	for nodes.Len() > 0 {
-		min := heap.Pop(nodes).(*node)
+	for len(*nodes) > 0 {
+		min := nodes.pop()
 		for _, edge := range min.edges {
 			v := edge.end // get the other side of the edge
-			if nodes.HeapContains(v) && edge.weight < v.state {
+			if nodes.heapContains(v) && edge.weight < v.state {
 				v.parent = min
-				heap.Remove(nodes, v.data) // remove it
-				v.state = edge.weight      // update state
-				heap.Push(nodes, v)        // add it back in, WORD, O(lg n) update key time!
+				nodes.update(v.data, edge.weight)
 			}
 		}
 	}
@@ -254,31 +251,4 @@ func (g *Graph) edgeWeightBetween(v, u *node) int {
 		}
 	}
 	return 0
-}
-
-type nodeSlice []*node
-
-func (n *nodeSlice) Push(x interface{}) {
-	p := x.(*node)
-	p.data = len(*n) // index into heap
-	*n = append(*n, x.(*node))
-}
-func (n *nodeSlice) Pop() interface{} {
-	rNode := (*n)[len(*n)-1]
-	rNode.data = -1
-	*n = (*n)[0 : len(*n)-1]
-	return rNode
-}
-func (n nodeSlice) Len() int {
-	return len(n)
-}
-func (n nodeSlice) Less(i, j int) bool {
-	return n[i].state < n[j].state
-}
-func (n nodeSlice) Swap(i, j int) {
-	n[j].data, n[i].data = n[i].data, n[j].data // swap data containing indices
-	n[j], n[i] = n[i], n[j]
-}
-func (n nodeSlice) HeapContains(node *node) bool { // extend heap interface
-	return node.data > dequeued
 }
