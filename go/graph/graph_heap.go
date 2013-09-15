@@ -66,7 +66,7 @@ func (p *nodeSlice) remove(index int) *node {
 		n.shuffleUp(index)
 	}
 	popped := n[length]
-	popped.data = -1
+	popped.data = dequeued
 	n = n[0:length]
 	*p = n
 	return popped
