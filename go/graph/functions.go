@@ -209,6 +209,8 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		return nil
 	}
 	// create priority queue for vertices
+	// node.data is the index into the heap
+	// node.state is the weight of an edge to its parent
 	nodesBase := nodeSlice(make([]*node, len(g.nodes)))
 	copy(nodesBase, g.nodes)
 	for i := range nodesBase {
@@ -216,6 +218,7 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		nodesBase[i].data = i
 	}
 	nodesBase[0].state = 0
+	nodesBase[0].parent = nil
 	nodes := &nodesBase
 	nodes.heapInit()
 
@@ -230,7 +233,7 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		}
 	}
 
-	mst := make([]Edge, 0)
+	mst := make([]Edge, 0, len(g.nodes))
 	for i := range g.nodes {
 		if g.nodes[i].parent != nil {
 			mst = append(mst, Edge{Weight: g.nodes[i].state,
