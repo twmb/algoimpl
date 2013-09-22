@@ -233,11 +233,11 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		}
 	}
 
-	mst := make([]Edge, 0, len(g.nodes) - 1)
-	for i := range g.nodes {
-		if g.nodes[i].parent != nil {
-			mst = append(mst, Edge{Weight: g.nodes[i].state,
-				Start: g.nodes[i].container, End: g.nodes[i].parent.container})
+	mst := make([]Edge, 0, len(g.nodes)-1)
+	for _, node := range g.nodes {
+		if node.parent != nil {
+			mst = append(mst, Edge{Weight: node.state,
+				Start: node.container, End: node.parent.container})
 		}
 	}
 
