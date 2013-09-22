@@ -3,6 +3,7 @@ package graph
 import (
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
+	"sort"
 	"sync"
 )
 
@@ -238,8 +239,59 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 		if node.parent != nil {
 			mst = append(mst, Edge{Weight: node.state,
 				Start: node.container, End: node.parent.container})
+		} else {
+			node.data = 0
 		}
 	}
 
 	return mst
+}
+
+// MaxSpacingClustering returns a slice of clusters
+// with the distance between the clusters maximized as
+// well as the maximized distance between these clusters.
+// It takes as input the number of clusters to compute.
+func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int) {
+	mst := g.MinimumSpanningTree()
+	sort.Sort(edgeSlice(mst))
+	// node.data is a cluster it belongs to
+	length := len(mst)
+
+	distance := 0
+	for i, j := length-1, n-1; i > (length - n); i, j = i-1, j-1 {
+		endNode := mst[i].End.node
+		if endNode.parent != nil {
+			endNode.parent = nil
+			endNode.data = j
+		} else {
+			i, j = i+1, j+1
+		}
+		distance = mst[i].Weight
+	}
+
+	clusters := make([][]Node, n)
+	for _, node := range g.nodes {
+		c := determineCluster(node)
+		clusters[c] = append(clusters[c], node.container)
+	}
+	return clusters, distance
+}
+
+func determineCluster(n *node) int {
+	if n.data == dequeued {
+		n.data = determineCluster(n.parent)
+	}
+	return n.data
+}
+
+type edgeSlice []Edge
+
+func (e edgeSlice) Len() int {
+	return len(e)
+}
+func (e edgeSlice) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
+}
+func (e edgeSlice) Less(i, j int) bool {
+	return e[i].Weight < e[j].Weight
 }
