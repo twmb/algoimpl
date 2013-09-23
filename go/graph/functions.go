@@ -254,18 +254,18 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int) {
 	mst := g.MinimumSpanningTree()
 	sort.Sort(edgeSlice(mst))
-	// node.data is a cluster it belongs to
 	length := len(mst)
-
 	distance := 0
+
+	// node.data is a cluster it belongs to
 	for i, j := length-1, n-1; i > (length - n); i, j = i-1, j-1 {
-		endNode := mst[i].End.node
-		if endNode.parent != nil {
-			endNode.parent = nil
-			endNode.data = j
-		} else {
-			i, j = i+1, j+1
-		}
+		// Use the start node: to 'remove' an edge and set
+		// a leader node to belong to a cluster, start of the edge's parent.
+		// The only node that will have a nil parent is an end node from MST above.
+		// This node already automatically belongs to cluster 0.
+		startNode := mst[i].Start.node
+		startNode.parent = nil
+		startNode.data = j
 		distance = mst[i].Weight
 	}
 
@@ -278,6 +278,9 @@ func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int) {
 }
 
 func determineCluster(n *node) int {
+	// all nodes .data member is set to the dequeued const from MST's .pop().
+	// I use the .data member in clustering as the cluster number.
+	// Thus, if .data == dequeued, then the cluster has not been set yet.
 	if n.data == dequeued {
 		n.data = determineCluster(n.parent)
 	}
