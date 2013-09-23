@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"errors"
 	"github.com/twmb/algoimpl/go/graph/lite"
 	"math/rand"
 	"sort"
@@ -251,21 +252,22 @@ func (g *Graph) MinimumSpanningTree() []Edge {
 // with the distance between the clusters maximized as
 // well as the maximized distance between these clusters.
 // It takes as input the number of clusters to compute.
-func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int) {
+func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int, error) {
+	if n < 1 || n > len(g.nodes) {
+		return nil, 0, errors.New("MaxSpacingClustering: invalid number of clusters requested")
+	}
 	mst := g.MinimumSpanningTree()
-	sort.Sort(edgeSlice(mst))
-	length := len(mst)
+	sort.Sort(sort.Reverse(edgeSlice(mst)))
 	distance := 0
 
 	// node.data is a cluster it belongs to
-	for i, j := length-1, n-1; i > (length - n); i, j = i-1, j-1 {
+	for i := 0; i < n-1; i++ {
 		// Use the start node: to 'remove' an edge and set
 		// a leader node to belong to a cluster, start of the edge's parent.
 		// The only node that will have a nil parent is an end node from MST above.
 		// This node already automatically belongs to cluster 0.
-		startNode := mst[i].Start.node
-		startNode.parent = nil
-		startNode.data = j
+		mst[i].Start.node.parent = nil
+		mst[i].Start.node.data = i + 1
 		distance = mst[i].Weight
 	}
 
@@ -274,7 +276,7 @@ func (g *Graph) MaxSpacingClustering(n int) ([][]Node, int) {
 		c := determineCluster(node)
 		clusters[c] = append(clusters[c], node.container)
 	}
-	return clusters, distance
+	return clusters, distance, nil
 }
 
 func determineCluster(n *node) int {
