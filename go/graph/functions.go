@@ -40,6 +40,24 @@ func (g *Graph) dfsReversedEdges(node *node, finishList *[]Node) {
 	*finishList = append(*finishList, node.container)
 }
 
+func (g *Graph) bfs(node *node, finishList *[]Node) {
+	queue := make([]*node, 0, len(node.edges))
+	queue = append(queue, node)
+	for i := 0; i < len(queue); i++ {
+		node.state = seen
+		for _, edge := range node.edges {
+			if edge.end.state == unseen {
+				edge.end.state = seen
+				queue = append(queue, edge.end)
+			}
+		}
+	}
+	*finishList = make([]Node, 0, len(queue))
+	for i := range queue {
+		*finishList = append(*finishList, queue[i].container)
+	}
+}
+
 // TopologicalSort topoligically sorts a directed acyclic graph.
 // If the graph is cyclic, the sort order will change
 // based on which node the sort starts on.
@@ -83,11 +101,29 @@ func (g *Graph) Reverse() *Graph {
 }
 
 // StronglyConnectedComponents returns a slice of strongly connected nodes in a directed graph.
-// If used on an undirected graph, this function returns nil.
+// If used on an undirected graph, this function returns distinct connected components.
 func (g *Graph) StronglyConnectedComponents() [][]Node {
 	if g.Kind == Undirected {
-		return nil
+		return g.sccUndirected()
 	}
+	return g.sccDirected()
+}
+
+// the connected components algorithm for an undirected graph
+func (g *Graph) sccUndirected() [][]Node {
+	components := make([][]Node, 0)
+	for _, node := range g.nodes {
+		if node.state == unseen {
+			component := make([]Node, 0)
+			g.bfs(node, &component)
+			components = append(components, component)
+		}
+	}
+	return components
+}
+
+// the Strongly Connected Components algorithm for a directed graph
+func (g *Graph) sccDirected() [][]Node {
 	components := make([][]Node, 0)
 	finishOrder := g.TopologicalSort()
 	for i := range finishOrder {
