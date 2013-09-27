@@ -6,7 +6,17 @@ import (
 
 // RandMinimumCut has been tested in practice (Coursera Algo course 1). If any bugs crop up, email me.
 
+func BenchTopologicalSort(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		tbTopologicalSort(b)
+	}
+}
+
 func TestTopologicalSort(t *testing.T) {
+	tbTopologicalSort(t)
+}
+
+func tbTopologicalSort(t testing.TB) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create graph on page 613 of CLRS ed. 3
@@ -28,7 +38,6 @@ func TestTopologicalSort(t *testing.T) {
 	graph.MakeEdge(nodes[6], nodes[3])
 	graph.MakeEdge(nodes[6], nodes[7])
 	graph.MakeEdge(nodes[8], nodes[7])
-	graph.verify(t)
 	wantOrder := make([]Node, len(graph.nodes))
 	wantOrder[0] = nodes[8] // socks
 	wantOrder[1] = nodes[5] // undershorts
@@ -52,7 +61,19 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	testSCCUndirected(t)
 }
 
-func testSCCDirected(t *testing.T) {
+func BenchmarkSCCUndirected(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		testSCCUndirected(b)
+	}
+}
+
+func BenchmarkSCCDirected(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		testSCCDirected(b)
+	}
+}
+
+func testSCCDirected(t testing.TB) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
@@ -78,7 +99,6 @@ func testSCCDirected(t *testing.T) {
 	graph.MakeEdge(nodes[6], nodes[2])
 	graph.MakeEdge(nodes[6], nodes[7])
 	graph.MakeEdge(nodes[7], nodes[5])
-	graph.verify(t)
 	want := make([][]Node, 4)
 	want[0] = make([]Node, 3)
 	want[1] = make([]Node, 2)
@@ -102,7 +122,7 @@ func testSCCDirected(t *testing.T) {
 	}
 }
 
-func testSCCUndirected(t *testing.T) {
+func testSCCUndirected(t testing.TB) {
 	g := New(Undirected)
 	nodes := make([]Node, 0)
 	nodes = append(nodes, g.MakeNode())
