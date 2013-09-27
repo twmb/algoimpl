@@ -48,6 +48,11 @@ func TestTopologicalSort(t *testing.T) {
 }
 
 func TestStronglyConnectedComponents(t *testing.T) {
+	testSCCDirected(t)
+	testSCCUndirected(t)
+}
+
+func testSCCDirected(t *testing.T) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
@@ -88,6 +93,54 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	want[2][1] = nodes[1]
 	want[3][0] = nodes[3]
 	components := graph.StronglyConnectedComponents()
+	for j := range components {
+		for i := range want[j] {
+			if !componentContains(components[j], want[j][i]) {
+				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
+			}
+		}
+	}
+}
+
+func testSCCUndirected(t *testing.T) {
+	g := New(Undirected)
+	nodes := make([]Node, 0)
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	nodes = append(nodes, g.MakeNode())
+	g.MakeEdge(nodes[0], nodes[1])
+	g.MakeEdge(nodes[0], nodes[10])
+	g.MakeEdge(nodes[2], nodes[3])  // 1: 0--1    2: 2--3
+	g.MakeEdge(nodes[3], nodes[4])  //    | /           |
+	g.MakeEdge(nodes[4], nodes[5])  //    10         5--4
+	g.MakeEdge(nodes[8], nodes[7])  //          8
+	g.MakeEdge(nodes[9], nodes[8])  //    3:   /|\
+	g.MakeEdge(nodes[8], nodes[6])  //        / | \
+	g.MakeEdge(nodes[10], nodes[1]) //       7  9  6
+	want := make([][]Node, 3)
+	want[0] = make([]Node, 3)
+	want[1] = make([]Node, 4)
+	want[2] = make([]Node, 4)
+	want[0][0] = nodes[0]
+	want[0][1] = nodes[1]
+	want[0][2] = nodes[10]
+	want[1][0] = nodes[2]
+	want[1][1] = nodes[3]
+	want[1][2] = nodes[4]
+	want[1][3] = nodes[5]
+	want[2][0] = nodes[8]
+	want[2][1] = nodes[7]
+	want[2][2] = nodes[9]
+	want[2][3] = nodes[6]
+	components := g.StronglyConnectedComponents()
 	for j := range components {
 		for i := range want[j] {
 			if !componentContains(components[j], want[j][i]) {
