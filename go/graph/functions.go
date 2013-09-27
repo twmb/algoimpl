@@ -65,6 +65,13 @@ func (g *Graph) bfs(n *node, finishList *[]Node) {
 //
 // The StronglyConnectedComponents function can be used to determine if a graph has cycles.
 func (g *Graph) TopologicalSort() []Node {
+	if g.Kind == Undirected {
+		return nil
+	}
+	// init states
+	for i := range g.nodes {
+		g.nodes[i].state = unseen
+	}
 	sorted := make([]Node, 0, len(g.nodes))
 	// sort preorder (first jacket, then shirt)
 	for _, node := range g.nodes {
