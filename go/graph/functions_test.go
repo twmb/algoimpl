@@ -6,17 +6,31 @@ import (
 
 // RandMinimumCut has been tested in practice (Coursera Algo course 1). If any bugs crop up, email me.
 
-func BenchTopologicalSort(b *testing.B) {
+func BenchmarkTopologicalSort(b *testing.B) {
+	b.StopTimer()
+	graph, _ := setupTopologicalSort()
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		tbTopologicalSort(b)
+		graph.TopologicalSort()
 	}
 }
 
 func TestTopologicalSort(t *testing.T) {
-	tbTopologicalSort(t)
+	graph, wantOrder := setupTopologicalSort()
+	result := graph.TopologicalSort()
+	firstLen := len(result)
+	result = graph.TopologicalSort()
+	if len(result) != firstLen {
+		t.Errorf("topologicalSort 2 times fails")
+	}
+	for i := range result {
+		if result[i] != wantOrder[i] {
+			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i], wantOrder[i])
+		}
+	}
 }
 
-func tbTopologicalSort(t testing.TB) {
+func setupTopologicalSort() (*Graph, []Node) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create graph on page 613 of CLRS ed. 3
@@ -48,12 +62,7 @@ func tbTopologicalSort(t testing.TB) {
 	wantOrder[6] = nodes[3] // belt
 	wantOrder[7] = nodes[1] // tie
 	wantOrder[8] = nodes[2] // jacket
-	result := graph.TopologicalSort()
-	for i := range result {
-		if result[i] != wantOrder[i] {
-			t.Errorf("index %v in result != wanted, value: %v, want value: %v", i, result[i], wantOrder[i])
-		}
-	}
+	return graph, wantOrder
 }
 
 func TestStronglyConnectedComponents(t *testing.T) {
@@ -61,19 +70,49 @@ func TestStronglyConnectedComponents(t *testing.T) {
 	testSCCUndirected(t)
 }
 
+func testSCCDirected(t *testing.T) {
+	graph, want := setupSCCDirected()
+	components := graph.StronglyConnectedComponents()
+	for j := range components {
+		for i := range want[j] {
+			if !componentContains(components[j], want[j][i]) {
+				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
+			}
+		}
+	}
+}
+
+func testSCCUndirected(t *testing.T) {
+	g, want := setupSCCUndirected()
+	components := g.StronglyConnectedComponents()
+	for j := range components {
+		for i := range want[j] {
+			if !componentContains(components[j], want[j][i]) {
+				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
+			}
+		}
+	}
+}
+
 func BenchmarkSCCUndirected(b *testing.B) {
+	b.StopTimer()
+	graph, _ := setupSCCUndirected()
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		testSCCUndirected(b)
+		graph.StronglyConnectedComponents()
 	}
 }
 
 func BenchmarkSCCDirected(b *testing.B) {
+	b.StopTimer()
+	graph, _ := setupSCCDirected()
+	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		testSCCDirected(b)
+		graph.StronglyConnectedComponents()
 	}
 }
 
-func testSCCDirected(t testing.TB) {
+func setupSCCDirected() (*Graph, [][]Node) {
 	graph := New(Directed)
 	nodes := make([]Node, 0)
 	// create SCC graph on page 616 of CLRS ed 3
@@ -112,17 +151,10 @@ func testSCCDirected(t testing.TB) {
 	want[2][0] = nodes[2]
 	want[2][1] = nodes[1]
 	want[3][0] = nodes[3]
-	components := graph.StronglyConnectedComponents()
-	for j := range components {
-		for i := range want[j] {
-			if !componentContains(components[j], want[j][i]) {
-				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
-			}
-		}
-	}
+	return graph, want
 }
 
-func testSCCUndirected(t testing.TB) {
+func setupSCCUndirected() (*Graph, [][]Node) {
 	g := New(Undirected)
 	nodes := make([]Node, 0)
 	nodes = append(nodes, g.MakeNode())
@@ -160,14 +192,7 @@ func testSCCUndirected(t testing.TB) {
 	want[2][1] = nodes[7]
 	want[2][2] = nodes[9]
 	want[2][3] = nodes[6]
-	components := g.StronglyConnectedComponents()
-	for j := range components {
-		for i := range want[j] {
-			if !componentContains(components[j], want[j][i]) {
-				t.Errorf("component slice %v does not contain want node %v", components[j], want[j][i])
-			}
-		}
-	}
+	return g, want
 }
 
 func TestMinimumSpanningTree(t *testing.T) {
