@@ -40,10 +40,11 @@ func (g *Graph) dfsReversedEdges(node *node, finishList *[]Node) {
 	*finishList = append(*finishList, node.container)
 }
 
-func (g *Graph) bfs(node *node, finishList *[]Node) {
-	queue := make([]*node, 0, len(node.edges))
-	queue = append(queue, node)
+func (g *Graph) bfs(n *node, finishList *[]Node) {
+	queue := make([]*node, 0, len(n.edges))
+	queue = append(queue, n)
 	for i := 0; i < len(queue); i++ {
+		node := queue[i]
 		node.state = seen
 		for _, edge := range node.edges {
 			if edge.end.state == unseen {
