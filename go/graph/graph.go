@@ -44,7 +44,7 @@ type Node struct {
 	// can test for equality on Nodes. The pointer wont change,
 	// the value it points to will. If the pointer is explicitly changed,
 	// graph functions that use Nodes will cease to work.
-	Value *interface{}
+	Value interface{}
 }
 
 type edge struct {
