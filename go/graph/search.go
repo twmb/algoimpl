@@ -52,3 +52,62 @@ func (g *Graph) DijkstraSearch(start Node) []Path {
 	}
 	return paths
 }
+
+// Context for an AllPathSearch
+type allPathSearch struct {
+	// Graph
+	Graph *Graph
+	// Current path
+	Path []Edge
+	// Set of node values on the path
+	NodeValues map[*interface{}]bool
+	// Final paths
+	Result []Path
+}
+
+// AllPathSearch returns all the paths from the start node to another
+// node in the graph. The graph can be cyclic but cyclic paths will never be included.
+func (g *Graph) AllPathSearch(start, end Node) []Path {
+	aps := &allPathSearch{
+		Path:       []Edge{},
+		NodeValues: make(map[*interface{}]bool),
+		Graph:      g,
+		Result:     []Path{},
+	}
+	aps.enumerate(start, end)
+	return aps.Result
+}
+
+// enumerate recursively evaluates the allPathSearch. Curr is the current visited node, end
+// is the target node.
+// Implementation is based on: http://introcs.cs.princeton.edu/java/45graph/AllPaths.java.html
+func (aps *allPathSearch) enumerate(curr, end Node) {
+	// Mark this node as visited
+	aps.NodeValues[curr.Value] = true
+	// Defer unmarking this as visited when we rewind the stack.
+	defer func() {
+		delete(aps.NodeValues, curr.Value)
+	}()
+
+	// we have found a path to the destination.
+	if curr.Value == end.Value {
+		path := Path{Weight: 0}
+		path.Path = make([]Edge, len(aps.Path))
+		copy(path.Path, aps.Path)
+		aps.Result = append(aps.Result, path)
+		return
+	}
+
+	// For each neighbor, continue the path if we haven't already visited that node.
+	neighbors := aps.Graph.Neighbors(curr)
+	for _, neighbor := range neighbors {
+		if _, ok := aps.NodeValues[neighbor.Value]; ok {
+			continue
+		}
+		// Push the edge onto the stack
+		aps.Path = append(aps.Path, Edge{Start: curr, End: neighbor})
+		aps.enumerate(neighbor, end)
+		// Pop the edge off the stack before continuing
+		aps.Path = aps.Path[:len(aps.Path)-1]
+	}
+}

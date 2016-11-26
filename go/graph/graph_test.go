@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -289,5 +291,55 @@ func TestNeighbors(t *testing.T) {
 	neighbors = g.Neighbors(oldGraphNode)
 	if len(neighbors) > 0 {
 		t.Errorf("old graph node has neighbors in new graph: %v", neighbors)
+	}
+}
+
+var allPathExpectation = `2 paths
+path with 3 edges
+ - root -> inter2
+ - inter2 -> inter3
+ - inter3 -> target
+path with 2 edges
+ - root -> inter1
+ - inter1 -> target
+`
+
+func TestAllPathSearch(t *testing.T) {
+	g := New(Directed)
+	nodes := make([]Node, 5)
+	for i := 0; i < 5; i++ {
+		nodes[i] = g.MakeNode()
+	}
+
+	// 0 = root, 1 = inter1, 2 = inter2, 3 = inter3, 4 = target
+
+	// output chain 1: root -> inter2 -> inter3 -> target
+	g.MakeEdge(nodes[0], nodes[2])
+	g.MakeEdge(nodes[2], nodes[3])
+	g.MakeEdge(nodes[3], nodes[4])
+
+	// output chain 2: root -> inter1 -> target
+	g.MakeEdge(nodes[0], nodes[1])
+	g.MakeEdge(nodes[1], nodes[4])
+
+	*nodes[0].Value = "root"
+	*nodes[1].Value = "inter1"
+	*nodes[2].Value = "inter2"
+	*nodes[3].Value = "inter3"
+	*nodes[4].Value = "target"
+
+	paths := g.AllPathSearch(nodes[0], nodes[4])
+	var outpBuf bytes.Buffer
+	outpBuf.WriteString(fmt.Sprintf("%d paths\n", len(paths)))
+	for _, path := range paths {
+		outpBuf.WriteString(fmt.Sprintf("path with %d edges\n", len(path.Path)))
+		for _, step := range path.Path {
+			outpBuf.WriteString(fmt.Sprintf(" - %s -> %s\n", (*step.Start.Value).(string), (*step.End.Value).(string)))
+		}
+	}
+	outpStr := outpBuf.String()
+	t.Logf("%s", outpStr)
+	if allPathExpectation != outpStr {
+		t.Fail()
 	}
 }
